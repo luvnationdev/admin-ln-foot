@@ -2,22 +2,38 @@ import Link from "next/link"
 import Image from "next/image"
 import { FaGooglePlay } from "react-icons/fa";
 
+// Service and company links arrays
+const serviceLinks = [
+  { label: "Latest News", href: "#" },
+  { label: "Match Highlights", href: "#" },
+  { label: "Player Profiles", href: "#" },
+  { label: "Team Analysis", href: "#" },
+  { label: "Upcoming Matches", href: "#" },
+  { label: "Transfer News", href: "#" },
+  { label: "Game Recaps", href: "#" },
+];
+
+const companyLinks = [
+  { label: "About Us", href: "#" },
+  { label: "Contact Us", href: "#" },
+  { label: "Privacy Policy", href: "#" },
+  { label: "Terms & Conditions", href: "#" },
+];
+
 export default function Footer() {
-  
   return (
     <footer className="bg-[#0a1e3c] text-white  ">
       {/* Logo */}
       <div className="flex justify-between overflow-hidden">
-        <Image src={"/ln-foot.svg"} alt="Logo" width={375} height={215} className="px-2 mb-4" />
+        <Image src={"/ln-foot.svg"} alt="Logo" width={375} height={215} className="px-2 mb-12" />
         <Image
           src={"/LN.png"}
           alt="Logo"
-          width={130}
-          height={40}
-          className="hidden lg:block -rotate-15 translate-x-4 top-0 -translate-y-2 opacity-50"
+          width={150}
+          height={50}
+          className="hidden lg:block -rotate-15 translate-x-4 top-0 -translate-y-10 opacity-50"
         />
       </div>
-
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-6 md:px-12">
         {/* Newsletter Section */}
@@ -57,66 +73,25 @@ export default function Footer() {
         {/* Footer Links */}
         <div className="md:col-span-2">
           <ul className="space-y-2 text-sm">
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Latest News
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Match Highlights
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Player Profiles
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Team Analysis
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Upcoming Matches
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Transfer News
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Game Recaps
-              </Link>
-            </li>
+            {serviceLinks.map(link => (
+              <li key={link.label}>
+                <Link href={link.href} className="hover:text-gray-300 transition-colors">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
         <div className="md:col-span-2">
           <ul className="space-y-2 text-sm">
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                About Us
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Contact Us
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Privacy Policy
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-gray-300 transition-colors">
-                Terms & Conditions
-              </Link>
-            </li>
+            {companyLinks.map(link => (
+              <li key={link.label}>
+                <Link href={link.href} className="hover:text-gray-300 transition-colors">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
