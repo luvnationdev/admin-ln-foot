@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Layout/footer";
+import Navbar from "@/components/Layout/navbar";
 
 const openSans = Open_Sans({
   variable: "--font-open-sans",
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body
         className={`${openSans.variable} antialiased`}
       >
+        <Navbar isLoggedIn={true} />
         {children}
         <Footer />
       </body>
