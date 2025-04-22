@@ -3,12 +3,12 @@ import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Layout/footer";
 import Navbar from "@/components/Layout/navbar";
+import { Toaster } from "sonner";
 
 const openSans = Open_Sans({
   variable: "--font-open-sans",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -28,6 +28,7 @@ export default function RootLayout({
         <Navbar isLoggedIn={true} />
         {children}
         <Footer />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
