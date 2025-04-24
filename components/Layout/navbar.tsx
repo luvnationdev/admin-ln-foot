@@ -147,6 +147,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                     </Button>
                   </Link>
                 </li>
+                <li>
+                  <Link href="/api/auth/signout">
+                    <Button variant="outline" className="text-blue-700 border-blue-700 rounded px-4 py-2 font-semibold w-full">
+                      Login
+                    </Button>
+                  </Link>
+                </li>
               </ul>
             ) : (
               <ul className="space-y-4">
@@ -157,7 +164,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   </div>
                 </li>
                 <li>
-                  <Link href="/auth/login">
+                  <Link href="/api/auth/signin">
                     <Button variant="outline" className="text-blue-700 border-blue-700 rounded px-4 py-2 font-semibold w-full">
                       Login
                     </Button>
