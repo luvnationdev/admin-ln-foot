@@ -1,4 +1,6 @@
 import DashboardForm from '@/components/dashboard/dashboard-form'
+import { createApiClient } from '@/lib/api-client'
+import { getAllProducts } from '@/lib/api-client/gen'
 import { auth } from '@/server/auth'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
@@ -8,6 +10,12 @@ export default async function MobileDashboardPage() {
   if (!session) {
     redirect('/api/auth/signin')
   }
+
+  // fetch products
+  const products = await getAllProducts({
+    client: await createApiClient(),
+  })
+  console.log(products.data)
 
   return (
     <main className='min-h-screen bg-white'>

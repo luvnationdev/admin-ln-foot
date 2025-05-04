@@ -10,6 +10,8 @@ import KeycloakProvider from 'next-auth/providers/keycloak'
  */
 declare module 'next-auth' {
   interface Session extends DefaultSession {
+    accessToken?: string;
+    refreshToken?: string;
     user: {
       id: string
       role: 'admin' | 'user'
