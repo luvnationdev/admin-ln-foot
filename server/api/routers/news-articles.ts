@@ -45,6 +45,7 @@ export const newsArticleRouter = createTRPCRouter({
       z.object({
         title: z.string(),
         content: z.string(),
+        summary: z.string().optional(),
         imageUrl: z.string(),
         sourceUrl: z.string(),
         apiSource: z.string().optional(),
