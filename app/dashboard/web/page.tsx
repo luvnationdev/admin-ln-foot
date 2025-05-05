@@ -1,6 +1,5 @@
 import DashboardForm from '@/components/dashboard/dashboard-form'
 import { auth } from '@/server/auth'
-import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import {DashboardTabs} from '@/components/dashboard/dashboard-tabs'
 

@@ -28,7 +28,7 @@ export default async function RootLayout({
       <body className={`${openSans.variable} antialiased`}>
         <TRPCReactProvider>
           <SessionProvider>
-            <Navbar isLoggedIn={!!session} />
+            <Navbar isLoggedIn={!!session} user={session?.user}/>
             {children}
             <Footer />
           </SessionProvider>

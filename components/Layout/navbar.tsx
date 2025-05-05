@@ -3,15 +3,22 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Menu, Search } from "lucide-react"
+import { Menu, Search, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 
 interface NavbarProps {
   isLoggedIn?: boolean
+  user?: {
+    name: string
+    email: string
+    image: string
+  } | null
 }
 
-export default function Navbar({ isLoggedIn = false }: NavbarProps) {
+
+export default function Navbar({ isLoggedIn = false, user }: NavbarProps) {
+
   const [activeTab, setActiveTab] = useState<string>("mobile")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
   const [isMobile, setIsMobile] = useState<boolean>(false)
@@ -39,7 +46,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
             <Image src="/LN.png" alt="LN FOOT" width={40} height={40} className="h-10 w-auto" />
-            
+
           </Link>
         </div>
 
@@ -84,11 +91,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
         <div className="flex items-center">
           {isLoggedIn ? (
-            <Link href="/dashboard/web">
-              <Button variant="outline" className="text-blue-700 border-blue-700 rounded-full px-6 py-2 font-semibold">
-                Tableau De Bord
-              </Button>
-            </Link>
+            <>
+              {user && (
+                <span className="mr-4 font-semibold text-gray-700 truncate max-w-[120px]" title={user.name}>
+                  {user.name}
+                </span>
+              )}
+              <Link href="/api/auth/signout" className="flex items-center">
+                <span>
+                  <LogOut className="text-red-500" />
+                </span>
+              </Link>
+            </>
           ) : (
             <>
               <Button variant="ghost" className="text-gray-600 mr-4 p-2" aria-label="Rechercher">
@@ -148,9 +162,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   </Link>
                 </li>
                 <li>
+                  {user && (
+                    <span className="block mb-2 font-semibold text-gray-700 truncate max-w-[120px]" title={user.name}>
+                      {user.name}
+                    </span>
+                  )}
                   <Link href="/api/auth/signout">
-                    <Button variant="outline" className="text-blue-700 border-blue-700 rounded px-4 py-2 font-semibold w-full">
-                      Login
+                    <Button variant="outline" className="text-red-600 border-red-600 rounded px-4 py-2 font-semibold w-full">
+                      Déconnexion
                     </Button>
                   </Link>
                 </li>
