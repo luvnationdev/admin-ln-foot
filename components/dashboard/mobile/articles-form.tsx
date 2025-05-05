@@ -8,6 +8,7 @@ import Preview from "@/components/previews/article/preview"
 import { Badge } from "@/components/ui/badge"
 import { ProductData } from "@/types/product"
 import { SIZES, SHOE_SIZES, CATEGORIES } from "@/constants/product"
+import { trpc } from '@/lib/trpc/react'
 
 export default function ArticlesForm() {
   const [formData, setFormData] = useState<ProductData>({
@@ -20,6 +21,8 @@ export default function ArticlesForm() {
     sizes: [],
     shoeSizes: [],
   })
+
+  const createArticle = trpc.ecommerceArticles.createArticle.useMutation();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSizesOpen, setIsSizesOpen] = useState(false)
@@ -68,16 +71,32 @@ export default function ArticlesForm() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    toast.success("Formulaire soumis", {
-      description: (
-        <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(formData, null, 2)}</code>
-        </pre>
-      ),
-      duration: 5000,
-    })
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createArticle.mutateAsync({
+        title: formData.name,
+        summary: formData.description,
+        content: formData.description,
+        price: Number(formData.price) || 0,
+        imageUrl: 'https://edimosports.com/265-large_default/maillot-vert-rinel.jpg',
+        sourceUrl: '',
+        ecommerceId: undefined,
+      });
+      toast.success('Article créé avec succès !');
+      setFormData({
+        category: 'Catégories',
+        images: [],
+        name: '',
+        price: '',
+        description: '',
+        colors: [],
+        sizes: [],
+        shoeSizes: [],
+      });
+    } catch (err: any) {
+      toast.error('Erreur lors de la création de l\'article');
+    }
   }
 
   const showColorsField = ["Maillot", "Godasse"].includes(formData.category)
