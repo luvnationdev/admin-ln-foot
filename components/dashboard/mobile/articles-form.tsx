@@ -94,6 +94,7 @@ export default function ArticlesForm() {
         sizes: [],
         shoeSizes: [],
       });
+       /* eslint-disable @typescript-eslint/no-explicit-any */ 
     } catch (err: any) {
       toast.error('Erreur lors de la création de l\'article');
     }
