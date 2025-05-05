@@ -26,13 +26,15 @@ export default async function WebDashboardPage() {
         </div>
       </div>
 
-      <DashboardForm
-        tabs={[
-          { id: 'actualites', label: 'ACTUALITES' },
-          { id: 'publicites', label: 'PUBLICITES' },
-          { id: 'points-forts', label: 'POINTS FORTS' },
-        ]}
-      />
+      {/* Content Area */}
+      <div className="max-w-6xl px-4 mx-auto my-6">
+        {/* Content Tabs */}
+        <ContentTabs activeTab={contentTab} onTabChange={setContentTab} />
+
+        {/* Form Title */}
+        <h2 className="my-6 text-2xl font-bold text-center">{getFormTitle()}</h2>
+
+      </div>
     </main>
   )
 }
