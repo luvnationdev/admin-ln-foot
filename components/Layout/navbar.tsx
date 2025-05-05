@@ -10,10 +10,9 @@ import { useRouter } from "next/navigation"
 interface NavbarProps {
   isLoggedIn?: boolean
   user?: {
-    name: string
-    email: string
-    image: string
-  } | null
+    name?: string | null
+    email?: string | null
+  } | undefined
 }
 
 
@@ -92,9 +91,9 @@ export default function Navbar({ isLoggedIn = false, user }: NavbarProps) {
         <div className="flex items-center">
           {isLoggedIn ? (
             <>
-              {user && (
-                <span className="mr-4 font-semibold text-gray-700 truncate max-w-[120px]" title={user.name}>
-                  {user.name}
+              {user  && (
+                <span className="mr-4 font-semibold text-gray-700 truncate max-w-[120px]" title={user?.name ?? undefined}>
+                  {user?.name}
                 </span>
               )}
               <Link href="/api/auth/signout" className="flex items-center">
@@ -163,8 +162,8 @@ export default function Navbar({ isLoggedIn = false, user }: NavbarProps) {
                 </li>
                 <li>
                   {user && (
-                    <span className="block mb-2 font-semibold text-gray-700 truncate max-w-[120px]" title={user.name}>
-                      {user.name}
+                    <span className="block mb-2 font-semibold text-gray-700 truncate max-w-[120px]" title={user?.name ?? undefined}>
+                      {user?.name}
                     </span>
                   )}
                   <Link href="/api/auth/signout">
