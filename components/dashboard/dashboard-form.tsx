@@ -8,7 +8,6 @@ import { useState } from 'react'
 import ActualitesForm from './web/actualites-form'
 import PublicitesForm from './web/publicites-form'
 import PointsFortsForm from './web/points-forts-form'
-import { ProductData } from '@/types/product'
 
 type Tab = {
   id: string

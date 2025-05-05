@@ -35,7 +35,7 @@ export default function ArticlesForm() {
       e.preventDefault()
       setFormData((prev) => ({
         ...prev,
-        colors: [...(prev.colors || []), newColor.trim()],
+        colors: [...(prev.colors ?? []), newColor.trim()],
       }))
       setNewColor("")
     }
@@ -212,8 +212,8 @@ export default function ArticlesForm() {
                           setFormData((prev) => ({
                             ...prev,
                             sizes: e.target.checked
-                              ? [...(prev.sizes || []), size]
-                              : prev.sizes?.filter((s) => s !== size) || [],
+                              ? [...(prev.sizes ?? []), size]
+                              : prev.sizes?.filter((s) => s !== size) ?? [],
                           }))
                         }}
                         className="mr-2"
@@ -252,8 +252,8 @@ export default function ArticlesForm() {
                           setFormData((prev) => ({
                             ...prev,
                             shoeSizes: e.target.checked
-                              ? [...(prev.shoeSizes || []), size]
-                              : prev.shoeSizes?.filter((s) => s !== size) || [],
+                              ? [...(prev.shoeSizes ?? []), size]
+                              : prev.shoeSizes?.filter((s) => s !== size) ?? [],
                           }))
                         }}
                         className="mr-2"
@@ -270,7 +270,7 @@ export default function ArticlesForm() {
         {/* Champs de base */}
         <div className="space-y-2">
           <label htmlFor="name" className="block text-sm font-medium">
-            Nom de l'article
+            Nom de l{'\''}article
           </label>
           <input
             type="text"

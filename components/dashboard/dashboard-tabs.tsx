@@ -4,13 +4,16 @@ import ContentTabs from '@/components/content-tabs'
 import ActualitesForm from '@/components/dashboard/web/actualites-form'
 import PointsFortsForm from '@/components/dashboard/web/points-forts-form'
 import PublicitesForm from '@/components/dashboard/web/publicites-form'
+import ArticlesForm from './mobile/articles-form'
+import PostsForm from './web/posts-form'
 export function DashboardTabs() {
   const [activeTab, setActiveTab] = useState('actualites')
 
   const tabs = [
     { id: 'actualites', label: 'Actualités' },
+    {id: 'articles', label: 'Articles' },
     { id: 'pointsForts', label: 'Points Forts' },
-    { id: 'publicites', label: 'Publicités' }
+    { id: 'publicites', label: 'Publicités' },
   ]
 
   // Function to determine the form title based on active tab
@@ -41,8 +44,10 @@ export function DashboardTabs() {
 
       {/* Active Form Component */}
       {activeTab === 'actualites' && <ActualitesForm />}
+      {activeTab === 'articles' && <PostsForm />} {/* Placeholder for Articles Form */}
       {activeTab === 'pointsForts' && <PointsFortsForm />}
       {activeTab === 'publicites' && <PublicitesForm />}
+  
     </>
   )
 }

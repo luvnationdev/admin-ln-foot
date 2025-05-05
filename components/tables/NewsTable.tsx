@@ -1,5 +1,5 @@
 'use client'
-import { FaFutbol } from 'react-icons/fa'
+
 import React from 'react'
 import {
   Table,
@@ -21,10 +21,7 @@ export default function NewsTable() {
   if (isLoading) {
     return (
       <div className="w-full p-8 flex justify-center">
-        <div className="flex items-center space-x-2">
-          <FaFutbol className="animate-spin text-blue-500" size={24} />
-          <span className="text-gray-500">Loading...</span>
-        </div>
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
       </div>
     )
   }
@@ -46,15 +43,14 @@ export default function NewsTable() {
         </TableHeader>
         <TableBody>
           {newsArticles?.length ? (
+            /* eslint-disable @typescript-eslint/no-explicit-any */ 
             newsArticles.map((article: NewsArticle) => (
               <TableRow key={article.id}>
-                <TableCell className="font-medium">{article.title}</TableCell>
-                <TableCell>{article.apiSource || 'Admin'}</TableCell>
+                <TableCell className="font-medium">{article.title ?? 'No Title'}</TableCell>
+                <TableCell>{article.apiSource ?? 'Admin'}</TableCell>
                 <TableCell>
                   {article.summary
                     ? article.summary.substring(0, 100) + '...'
-                    : article.content
-                    ? article.content.substring(0, 100) + '...'
                     : 'No content'}
                 </TableCell>
                 <TableCell className="text-right">

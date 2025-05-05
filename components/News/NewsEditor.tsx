@@ -71,7 +71,7 @@ export default function NewsEditor() {
         title,
         summary: excerpt,
         sourceUrl: "lnfoot-cameroon",
-        content: content || "",
+        content: content ?? "",
       },
       {
         onError(error) {

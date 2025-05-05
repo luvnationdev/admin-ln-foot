@@ -1,15 +1,13 @@
-
-
 export interface NewsArticle {
-    id: number
-    title: string
-    content: string
-    summary: string
-    imageUrl: string
-    sourceUrl?: string // Link to the original article
-    publishedAt?: string
-    apiSource?: string
-    apiArticleId?: string
-    createdAt: string
-    updatedAt: string
+    id: string 
+    title: string | null
+    content: string | null
+    summary: string | null
+    imageUrl: string | null
+    sourceUrl: string | null // Link to the original article
+    publishedAt: Date | null
+    apiSource: string | null
+    apiArticleId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
 }

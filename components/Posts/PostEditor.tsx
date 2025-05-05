@@ -74,9 +74,9 @@ export default function PostEditor() {
     // On doit changer ca par l'api des Posts (qui n'a pas encore ete implemetes)
     createNewsArticle({
       title,
-      content: content || "",
+      content: content ?? "",
       summary: excerpt,
-      imageUrl: featuredImage || "",
+      imageUrl: featuredImage ?? "",
       sourceUrl: "", // Vous pouvez ajouter une URL de source si nécessaire
       apiSource: author,
       apiNewsId: "", // Vous pouvez ajouter un ID d'article si nécessaire
@@ -239,7 +239,7 @@ export default function PostEditor() {
                     <div className="h-4 bg-gray-100 rounded w-4/6"></div>
                   </div>
                 ) : (
-                  <div dangerouslySetInnerHTML={{ __html: editor?.getHTML() || "" }}></div>
+                  <div dangerouslySetInnerHTML={{ __html: editor?.getHTML() ?? "" }}></div>
                 )}
               </div>
 

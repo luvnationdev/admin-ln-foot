@@ -150,7 +150,7 @@ export default function Preview({ data }: PreviewProps) {
               {/* Color selection */}
               {data.colors && data.colors.length > 0 && (
                 <div>
-                  <span className="text-sm font-medium block mb-2">Sélectionner couleur: {selectedColor ? selectedColor : 'Noire'}</span>
+                  <span className="text-sm font-medium block mb-2">Sélectionner couleur: {selectedColor ?? 'Noire'}</span>
                   <div className="flex flex-wrap gap-2 items-center">
                     {data.colors.map((color, index) => (
                       <span
