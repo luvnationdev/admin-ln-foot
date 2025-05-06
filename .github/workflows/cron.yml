@@ -1,0 +1,26 @@
+name: Sync Fixtures
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Every 15 minutes
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Call protected tRPC endpoint
+        run: |
+          RESPONSE=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL?audience=next-api")
+
+          ID_TOKEN=$(echo "$RESPONSE" | jq -r .value)
+
+          curl -X POST https://admin-ln-foot.vercel.app/api/trpc/sync.syncData \
+              -H "Authorization: Bearer $ID_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"input":null}'

@@ -15,6 +15,7 @@ import type { OpenApiMeta } from 'trpc-openapi'
 
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
+import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 /**
  * 1. CONTEXT
@@ -139,7 +140,7 @@ export const protectedProcedure = t.procedure
 
 export const adminProcedure = t.procedure
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
+  .use(async ({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' })
     }
@@ -151,4 +152,30 @@ export const adminProcedure = t.procedure
         session: { ...ctx.session, user: ctx.session.user },
       },
     })
+  })
+
+export const ghActionProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(async ({ ctx, next }) => {
+    const authHeader = ctx.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing token' })
+    }
+
+    const token = authHeader.split(' ')[1]
+
+    const JWKS = createRemoteJWKSet(
+      new URL('https://token.actions.githubusercontent.com/.well-known/jwks')
+    )
+
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: 'https://token.actions.githubusercontent.com',
+      audience: 'next-api', // Match your GitHub call ?audience=next-api
+    })
+
+    if (payload.repository !== 'hublots-tech/admin-ln-foot') {
+      throw new Error('Unauthorized repository')
+    }
+
+    return next({ ctx })
   })

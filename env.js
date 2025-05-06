@@ -18,6 +18,7 @@ export const env = createEnv({
       .default('development'),
     KEYCLOAK_CLIENT_ID: z.string(),
     KEYCLOAK_ISSUER: z.string(),
+    API_SPORTS_KEY: z.string(),
   },
 
   /**
@@ -40,6 +41,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
     KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
+    API_SPORTS_KEY: process.env.API_SPORTS_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

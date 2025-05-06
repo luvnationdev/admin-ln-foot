@@ -1,10 +1,12 @@
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc'
-import { matchsRouter } from './routers/matchs'
+import { fixturesRouter } from './routers/fixtures'
 import { newsArticleRouter } from './routers/news-articles'
 import { ecommerceArticlesRouter } from './routers/ecommerce-articles'
 import { highlightRouter } from './routers/highlights'
 import { leaguesRouter } from './routers/leagues'
 import { advertisementsRouter } from './routers/advertisements'
+import { teamRouter } from './routers/teams'
+import { syncRouter } from './routers/sync'
 
 /**
  * This is the primary router for your server.
@@ -12,12 +14,14 @@ import { advertisementsRouter } from './routers/advertisements'
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  matchs: matchsRouter,
+  fixtures: fixturesRouter,
   newsArticles: newsArticleRouter,
   ecommerceArticles: ecommerceArticlesRouter,
   highlights: highlightRouter,
   leagues: leaguesRouter,
   advertisements: advertisementsRouter,
+  teams: teamRouter,
+  sync: syncRouter,
 })
 
 // export type definition of API

@@ -1,17 +1,17 @@
 import {
   adminProcedure,
   createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
+  publicProcedure
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
   leagues as LeaguesTable,
-  type matchs as MatchesTable,
+  fixtures as FixturesTable,
+  teams as TeamsTable,
 } from '@/server/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq, gt, or } from 'drizzle-orm'
 import { z } from 'zod'
-import { zMatchSchema } from './matchs'
+import { zFixtureSchema } from './fixtures'
 
 export const zLeagueSchema = z.object({
   id: z.string(),
@@ -24,50 +24,85 @@ export const zLeagueSchema = z.object({
   apiSource: z.string().nullable(),
   apiLeagueId: z.string().nullable(),
   logoUrl: z.string().nullable(),
-  matches: z.array(zMatchSchema),
+  fixtures: z.array(zFixtureSchema),
 })
 
 export const leaguesRouter = createTRPCRouter({
-  list: publicProcedure
-    .output(z.array(zLeagueSchema))
-    .query(async () => {
-      const leagues = await db.query.leagues.findMany({
-        orderBy: [desc(LeaguesTable.createdAt)],
-        with: {
-          matches: true,
-        },
+  list: publicProcedure.output(z.array(zLeagueSchema)).query(async () => {
+    const leagues = await db.query.leagues.findMany({
+      orderBy: [desc(LeaguesTable.createdAt)],
+      with: {
+        fixtures: true,
+      },
+    })
+    return leagues.map(
+      (
+        league: typeof LeaguesTable.$inferSelect & {
+          fixtures: (typeof FixturesTable.$inferSelect)[]
+        }
+      ) => ({
+        ...league,
+        fixtures: league.fixtures.filter(
+          (fixture) => fixture?.matchDatetime && fixture.matchDatetime > new Date()
+        ),
       })
-      return leagues.map(
-        (
-          league: typeof LeaguesTable.$inferSelect & {
-            matches: (typeof MatchesTable.$inferSelect)[]
-          }
-        ) => ({
-          ...league,
-          matches: league.matches.filter(
-            (match) => match?.matchDatetime && match.matchDatetime > new Date()
-          ),
+    )
+  }),
+  findOne: publicProcedure
+    .input(
+      z
+        .object({
+          id: z.string().optional(),
+          apiTeamId: z.string().optional(),
         })
-      )
-    }),
-  findOne: protectedProcedure
-    .input(z.object({ id: z.string() }))
+        .refine((data) => data.id ?? data.apiTeamId, {
+          message: "Either 'id' or 'apiTeamId' must be provided",
+        })
+    )
     .output(zLeagueSchema.optional())
     .query(async ({ input }) => {
-      const league = await db.query.leagues.findFirst({
-        with: { matches: true },
-        where: eq(LeaguesTable.id, input.id),
-      })
+      let league: typeof LeaguesTable.$inferSelect | undefined
+
+      if (input.id) {
+        // Lookup by league ID
+        league = await db.query.leagues.findFirst({
+          with: { matches: true },
+          where: eq(LeaguesTable.id, input.id),
+        })
+      } else if (input.apiTeamId) {
+        // Lookup by team external ID
+        const leaguesWithTeam = await db
+          .select()
+          .from(LeaguesTable)
+          .leftJoin(FixturesTable, eq(FixturesTable.leagueId, LeaguesTable.id))
+          .leftJoin(
+            TeamsTable,
+            or(
+              eq(FixturesTable.team1Id, TeamsTable.id),
+              eq(FixturesTable.team2Id, TeamsTable.id)
+            )
+          )
+          .where(eq(TeamsTable.apiTeamId, input.apiTeamId))
+          .execute()
+
+        league = leaguesWithTeam[0]?.leagues
+      }
+
       if (league) {
+        const matches = await db.query.fixtures.findMany({
+          where: and(
+            eq(FixturesTable.leagueId, league.id),
+            gt(FixturesTable.matchDatetime, new Date())
+          ),
+        })
+
         return {
           ...league,
-          matches: (
-            league.matches as (typeof MatchesTable.$inferSelect)[]
-          ).filter(
-            (match) => match?.matchDatetime && match.matchDatetime > new Date()
-          ),
+          fixtures: matches,
         }
       }
+
+      return undefined
     }),
   createLeague: adminProcedure
     .input(

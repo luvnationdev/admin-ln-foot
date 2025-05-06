@@ -70,7 +70,7 @@ export const teams = createTable('teams', {
 })
 
 // New Matches/Events Table
-export const matchs = createTable('matchs', {
+export const fixtures = createTable('fixtures', {
   id: uuid('id').primaryKey().defaultRandom(),
   leagueId: uuid('league_id').references(() => leagues.id, {
     onDelete: 'cascade',
@@ -83,7 +83,7 @@ export const matchs = createTable('matchs', {
   }).notNull(),
   matchDatetime: timestamp('match_datetime', { withTimezone: true }).notNull(),
   apiSource: varchar('api_source', { length: 50 }), // e.g., 'BetsAPI', 'Highlightly', 'Flashscore'
-  apiMatchId: varchar('api_match_id', { length: 255 }), // The ID used by the API
+  apiFixtureId: varchar('api_fixture_id', { length: 255 }), // The ID used by the API
   status: varchar('status', { length: 50 }), // e.g., 'scheduled', 'live', 'finished', 'postponed'
   score1: integer('score1').default(0).notNull(), // Score for team1
   score2: integer('score2').default(0).notNull(), // Score for team2
@@ -100,7 +100,7 @@ export const matchs = createTable('matchs', {
 // New Highlights Table
 export const highlights = createTable('highlights', {
   id: uuid('id').primaryKey().defaultRandom(),
-  matchId: uuid('match_id').references(() => matchs.id, {
+  matchId: uuid('match_id').references(() => fixtures.id, {
     onDelete: 'cascade',
   }), // Link to the match
   title: text('title'),

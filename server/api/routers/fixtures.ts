@@ -5,11 +5,11 @@ import {
   publicProcedure,
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { matchs as MatchesTable, teams as TeamsTable } from '@/server/db/schema'
+import { fixtures as FixturesTable, teams as TeamsTable } from '@/server/db/schema'
 import { desc, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
-export const zMatchSchema = z.object({
+export const zFixtureSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
@@ -18,16 +18,16 @@ export const zMatchSchema = z.object({
   team1Id: z.string(),
   team2Id: z.string(),
   matchDatetime: z.date(),
-  apiMatchId: z.string().nullable(),
+  apiFixtureId: z.string().nullable(),
   status: z.string().nullable(),
   score1: z.number().default(0),
   score2: z.number().default(0),
 })
 
-export const matchsRouter = createTRPCRouter({
-  latest: publicProcedure.output(z.array(zMatchSchema)).query(async () => {
-    const matches = await db.query.matchs.findMany({
-      orderBy: [desc(MatchesTable.matchDatetime)],
+export const fixturesRouter = createTRPCRouter({
+  latest: publicProcedure.output(z.array(zFixtureSchema)).query(async () => {
+    const matches = await db.query.fixtures.findMany({
+      orderBy: [desc(FixturesTable.matchDatetime)],
       limit: 10,
     })
     const teams = await db.query.teams.findMany({
@@ -55,14 +55,14 @@ export const matchsRouter = createTRPCRouter({
   }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .output(zMatchSchema.optional())
+    .output(zFixtureSchema.optional())
     .query(async ({ input }) => {
-      const match = await db.query.matchs.findFirst({
-        where: eq(MatchesTable.id, input.id),
+      const match = await db.query.fixtures.findFirst({
+        where: eq(FixturesTable.id, input.id),
       })
       return match
     }),
-  createMatch: adminProcedure
+  createFixture: adminProcedure
     .input(
       z.object({
         matchDatetime: z.date(),
@@ -74,12 +74,12 @@ export const matchsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      const match = await db.insert(MatchesTable).values({
+      const match = await db.insert(FixturesTable).values({
         ...input,
       })
       return match
     }),
-  updateMatch: adminProcedure
+  updateFixture: adminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -93,15 +93,15 @@ export const matchsRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const match = await db
-        .update(MatchesTable)
+        .update(FixturesTable)
         .set({ ...input })
-        .where(eq(MatchesTable.id, input.id))
+        .where(eq(FixturesTable.id, input.id))
       return match
     }),
-  deleteMatch: adminProcedure
+  updateFixtures: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      await db.delete(MatchesTable).where(eq(MatchesTable.id, input.id))
+      await db.delete(FixturesTable).where(eq(FixturesTable.id, input.id))
       return { success: true }
     }),
 })
