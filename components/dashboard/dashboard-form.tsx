@@ -3,7 +3,7 @@
 import ContentTabs from '@/components/content-tabs'
 import ArticlesForm from '@/components/dashboard/mobile/articles-form'
 import EnteteForm from '@/components/dashboard/mobile/entete-form'
-import Preview from '@/components/preview'
+import Preview from '@/components/previews/article/preview'
 import { useState } from 'react'
 import ActualitesForm from './web/actualites-form'
 import PublicitesForm from './web/publicites-form'
@@ -90,11 +90,8 @@ export default function DashboardForm({ tabs }: MobileDashboardProps) {
           {getFormTitle()}
         </h2>
 
-        <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-8 md:grid-cols-1'>
           <div className='p-4 border rounded-md'>{renderForm()}</div>
-          <div className='h-96 md:h-auto'>
-            <Preview />
-          </div>
         </div>
       </div>
     </>
