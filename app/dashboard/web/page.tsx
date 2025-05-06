@@ -1,4 +1,3 @@
-import DashboardForm from '@/components/dashboard/dashboard-form'
 import { auth } from '@/server/auth'
 import { redirect } from 'next/navigation'
 import {DashboardTabs} from '@/components/dashboard/dashboard-tabs'
@@ -6,7 +5,6 @@ import {DashboardTabs} from '@/components/dashboard/dashboard-tabs'
 // Server component
 export default async function WebDashboardPage() {
   const session = await auth();
-  console.log(session);
   if (!session) {
     redirect('/api/auth/signin')
   }

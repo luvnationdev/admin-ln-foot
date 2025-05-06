@@ -1,5 +1,6 @@
 import { env } from '@/env'
-import { type DefaultSession, type NextAuthConfig } from 'next-auth'
+import { decodeJwt } from 'jose'
+import type { Session, DefaultSession, NextAuthConfig } from 'next-auth'
 import KeycloakProvider from 'next-auth/providers/keycloak'
 
 /**
@@ -10,11 +11,10 @@ import KeycloakProvider from 'next-auth/providers/keycloak'
  */
 declare module 'next-auth' {
   interface Session extends DefaultSession {
-    accessToken?: string;
-    refreshToken?: string;
+    accessToken?: string
     user: {
       id: string
-      role: 'admin' | 'user'
+      roles: ('admin' | 'user')[]
     } & DefaultSession['user']
   }
 
@@ -46,16 +46,31 @@ export const authConfig = {
      */
   ],
   callbacks: {
-    jwt: ({ token, account }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      // console.log({ token })
-      if (account) {
-        token.accessToken = account.access_token
+    jwt: ({ token }) => {
+      // First login
+      if (token.accessToken) {
+        const accessToken = token.accessToken as string
+
+        // Decode the access token to extract realm_access.roles
+        const payload = decodeJwt(accessToken)
+
+        token.roles = (payload.realm_access as { roles: string[] })?.roles ?? [
+          'user',
+        ]
       }
       return token
     },
+    async session({ session, token }) {
+      
+      // Pass roles to session
+      session.accessToken = token.accessToken as string
+      session.user.roles = token.roles as Session['user']['roles']
+      console.log({ session })
+      return session
+    },
+
     authorized(params) {
-      console.log("Authorizing...", params)
+      console.log('Authorizing...', params)
 
       return !params.auth
     },

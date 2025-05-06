@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
 import ContentTabs from '@/components/content-tabs'
 import ActualitesForm from '@/components/dashboard/web/actualites-form'
 import PointsFortsForm from '@/components/dashboard/web/points-forts-form'
 import PublicitesForm from '@/components/dashboard/web/publicites-form'
-import ArticlesForm from './mobile/articles-form'
+import { useState } from 'react'
 import PostsForm from './web/posts-form'
+
 export function DashboardTabs() {
   const [activeTab, setActiveTab] = useState('actualites')
 

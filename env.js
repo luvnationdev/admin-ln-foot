@@ -19,6 +19,9 @@ export const env = createEnv({
     KEYCLOAK_CLIENT_ID: z.string(),
     KEYCLOAK_ISSUER: z.string(),
     API_SPORTS_KEY: z.string(),
+    MINIO_ENDPOINT: z.string(),
+    MINIO_ACCESS_KEY: z.string(),
+    MINIO_SECRET_KEY: z.string(),
   },
 
   /**
@@ -42,6 +45,9 @@ export const env = createEnv({
     KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
     KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
     API_SPORTS_KEY: process.env.API_SPORTS_KEY,
+    MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
+    MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
+    MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

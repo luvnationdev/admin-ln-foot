@@ -7,6 +7,7 @@ import { leaguesRouter } from './routers/leagues'
 import { advertisementsRouter } from './routers/advertisements'
 import { teamRouter } from './routers/teams'
 import { syncRouter } from './routers/sync'
+import { uploadRouter } from './routers/upload'
 
 /**
  * This is the primary router for your server.
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   advertisements: advertisementsRouter,
   teams: teamRouter,
   sync: syncRouter,
+  upload: uploadRouter,
 })
 
 // export type definition of API
