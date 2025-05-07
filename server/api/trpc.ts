@@ -13,9 +13,9 @@ import { ZodError } from 'zod'
 
 import type { OpenApiMeta } from 'trpc-openapi'
 
+import { env } from '@/env'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
-import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 /**
  * 1. CONTEXT
@@ -157,25 +157,9 @@ export const adminProcedure = t.procedure
 export const ghActionProcedure = t.procedure
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
-    const authHeader = ctx.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing token' })
+    const incomingSecret = ctx.headers.get('x-github-secret')
+    if (incomingSecret !== env.API_SPORTS_KEY) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' })
     }
-
-    const token = authHeader.split(' ')[1]
-
-    const JWKS = createRemoteJWKSet(
-      new URL('https://token.actions.githubusercontent.com/.well-known/jwks')
-    )
-
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: 'https://token.actions.githubusercontent.com',
-      audience: 'next-api', // Match your GitHub call ?audience=next-api
-    })
-
-    if (payload.repository !== 'hublots-tech/admin-ln-foot') {
-      throw new Error('Unauthorized repository')
-    }
-
-    return next({ ctx })
+    return next()
   })

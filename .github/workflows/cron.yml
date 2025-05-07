@@ -15,12 +15,7 @@ jobs:
     steps:
       - name: Call protected tRPC endpoint
         run: |
-          RESPONSE=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-              "$ACTIONS_ID_TOKEN_REQUEST_URL?audience=next-api")
-
-          ID_TOKEN=$(echo "$RESPONSE" | jq -r .value)
-
           curl -X POST https://admin-ln-foot.vercel.app/api/trpc/sync.syncData \
-              -H "Authorization: Bearer $ID_TOKEN" \
               -H "Content-Type: application/json" \
+              -H "x-github-secret: ${{ secrets.SYNC_SECRET }}" \
               -d '{"input":null}'
