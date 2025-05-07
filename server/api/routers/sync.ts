@@ -83,6 +83,7 @@ export const syncRouter = createTRPCRouter({
               leagueId: league!.id,
               team1Id: homeTeam!.id,
               team2Id: awayTeam!.id,
+              status: item.fixture.status.short
             })
           }
         })

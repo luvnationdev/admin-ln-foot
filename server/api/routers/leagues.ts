@@ -1,7 +1,7 @@
 import {
   adminProcedure,
   createTRPCRouter,
-  publicProcedure
+  publicProcedure,
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
@@ -9,9 +9,10 @@ import {
   fixtures as FixturesTable,
   teams as TeamsTable,
 } from '@/server/db/schema'
-import { and, desc, eq, gt, or } from 'drizzle-orm'
+import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 import { z } from 'zod'
 import { zFixtureSchema } from './fixtures'
+import { alias } from 'drizzle-orm/pg-core'
 
 export const zLeagueSchema = z.object({
   id: z.string(),
@@ -29,24 +30,7 @@ export const zLeagueSchema = z.object({
 
 export const leaguesRouter = createTRPCRouter({
   list: publicProcedure.output(z.array(zLeagueSchema)).query(async () => {
-    const leagues = await db.query.leagues.findMany({
-      orderBy: [desc(LeaguesTable.createdAt)],
-      with: {
-        fixtures: true,
-      },
-    })
-    return leagues.map(
-      (
-        league: typeof LeaguesTable.$inferSelect & {
-          fixtures: (typeof FixturesTable.$inferSelect)[]
-        }
-      ) => ({
-        ...league,
-        fixtures: league.fixtures.filter(
-          (fixture) => fixture?.matchDatetime && fixture.matchDatetime > new Date()
-        ),
-      })
-    )
+    return await getLeaguesWithFixtures()
   }),
   findOne: publicProcedure
     .input(
@@ -61,48 +45,8 @@ export const leaguesRouter = createTRPCRouter({
     )
     .output(zLeagueSchema.optional())
     .query(async ({ input }) => {
-      let league: typeof LeaguesTable.$inferSelect | undefined
-
-      if (input.id) {
-        // Lookup by league ID
-        league = await db.query.leagues.findFirst({
-          with: { matches: true },
-          where: eq(LeaguesTable.id, input.id),
-        })
-      } else if (input.apiTeamId) {
-        // Lookup by team external ID
-        const leaguesWithTeam = await db
-          .select()
-          .from(LeaguesTable)
-          .leftJoin(FixturesTable, eq(FixturesTable.leagueId, LeaguesTable.id))
-          .leftJoin(
-            TeamsTable,
-            or(
-              eq(FixturesTable.team1Id, TeamsTable.id),
-              eq(FixturesTable.team2Id, TeamsTable.id)
-            )
-          )
-          .where(eq(TeamsTable.apiTeamId, input.apiTeamId))
-          .execute()
-
-        league = leaguesWithTeam[0]?.leagues
-      }
-
-      if (league) {
-        const matches = await db.query.fixtures.findMany({
-          where: and(
-            eq(FixturesTable.leagueId, league.id),
-            gt(FixturesTable.matchDatetime, new Date())
-          ),
-        })
-
-        return {
-          ...league,
-          fixtures: matches,
-        }
-      }
-
-      return undefined
+      const [league] = await getLeaguesWithFixtures(input.id ?? input.apiTeamId)
+      return league
     }),
   createLeague: adminProcedure
     .input(
@@ -147,3 +91,71 @@ export const leaguesRouter = createTRPCRouter({
       return { success: true }
     }),
 })
+
+async function getLeaguesWithFixtures(id?: string) {
+  const team1Alias = alias(TeamsTable, 'team1')
+  const team2Alias = alias(TeamsTable, 'team2')
+  const now = new Date()
+
+  const rows = await db
+    .select({
+      league: LeaguesTable,
+      fixture: FixturesTable,
+      team1: {
+        id: team1Alias.id,
+        name: team1Alias.teamName,
+        logo: team1Alias.logoUrl,
+      },
+      team2: {
+        id: team2Alias.id,
+        name: team2Alias.teamName,
+        logo: team2Alias.logoUrl,
+      },
+    })
+    .from(LeaguesTable)
+    .leftJoin(FixturesTable, eq(LeaguesTable.id, FixturesTable.leagueId))
+    .leftJoin(team1Alias, eq(FixturesTable.team1Id, team1Alias.id))
+    .leftJoin(team2Alias, eq(FixturesTable.team2Id, team2Alias.id))
+    .where(
+      and(
+        id ? eq(LeaguesTable.id, id) : undefined,
+        or(
+          gt(FixturesTable.matchDatetime, now),
+          isNull(FixturesTable.matchDatetime)
+        ) // tolerate null fixtures if no join
+      )
+    )
+    .orderBy(desc(LeaguesTable.createdAt))
+
+  const grouped: Record<
+    string,
+    typeof LeaguesTable.$inferSelect & {
+      fixtures: Array<
+        typeof FixturesTable.$inferSelect & {
+          team1: { id: string; name: string; logo: string | null } | null
+          team2: { id: string; name: string; logo: string | null } | null
+        }
+      >
+    }
+  > = {}
+
+  for (const row of rows) {
+    const leagueId = row.league.id
+    if (!grouped[leagueId]) {
+      grouped[leagueId] = {
+        ...row.league,
+        fixtures: [],
+      }
+    }
+
+    if (row.fixture?.id) {
+      grouped[leagueId].fixtures.push({
+        ...row.fixture,
+        team1: row.team1?.id ? row.team1 : null,
+        team2: row.team2?.id ? row.team2 : null,
+      })
+    }
+  }
+
+  return Object.values(grouped)
+}
