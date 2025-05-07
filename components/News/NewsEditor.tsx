@@ -47,6 +47,14 @@ export default function NewsEditor() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setFeaturedImage(event.target.result as string)
+        }
+      }
+      reader.readAsDataURL(file)
+      
       uploadFile(file)
         .then(setFeaturedImage)
         .catch(() => toast.error('Could not upload featured image'))
@@ -92,28 +100,26 @@ export default function NewsEditor() {
         onClick={() => fileInputRef.current?.click()}
       >
         {featuredImage ? (
-          <div className='relative w-full'>
+          <div className="relative w-full">
             <img
-              src={featuredImage || '/placeholder.svg'}
-              alt='Featured'
-              className='w-full h-48 object-cover rounded-md'
+              src={featuredImage || "/placeholder.svg"}
+              alt="Featured"
+              className="w-full h-48 object-cover rounded-md"
             />
             <button
-              className='absolute top-2 right-2 bg-white rounded-full p-1'
+              className="absolute top-2 right-2 bg-white rounded-full p-1"
               onClick={(e) => {
                 e.stopPropagation()
-                setFeaturedImage('')
+                setFeaturedImage("")
               }}
             >
-              <X className='h-4 w-4 text-gray-500' />
+              <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
         ) : (
-          <div className='text-blue-500 text-center'>
-            <span className='text-3xl'>+</span>
-            <p className='mt-2 text-sm text-blue-500'>
-              Ajouter une image à la une
-            </p>
+          <div className="text-blue-500 text-center">
+            <span className="text-3xl">+</span>
+            <p className="mt-2 text-sm text-blue-500">Ajouter une image à la une</p>
           </div>
         )}
         <input

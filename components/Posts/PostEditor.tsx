@@ -111,7 +111,7 @@ export default function PostEditor() {
             </button>
           </div>
         ) : (
-          <div className="text-blue-500">
+          <div className="text-blue-500 text-center">
             <span className="text-3xl">+</span>
             <p className="mt-2 text-sm text-blue-500">Ajouter une image à la une</p>
           </div>
