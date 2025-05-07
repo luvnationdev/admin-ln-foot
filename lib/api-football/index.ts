@@ -8,7 +8,7 @@ const uniqueCountries = [...new Set(INTERESTED_LEAGUES.map((l) => l.country))]
 export const fetchLeagues = async () => {
   const fetches = uniqueCountries.map((country) =>
     fetch(
-      `https://api-football.com/v3/leagues?country=${encodeURIComponent(country)}`,
+      `${env.API_SPORTS_URL}/leagues?country=${encodeURIComponent(country)}`,
       {
         headers: { 'x-apisports-key': process.env.API_FOOTBALL_KEY! },
       }
@@ -27,7 +27,7 @@ export const fetchLeagues = async () => {
 export const fetchFixtures = async () => {
   const today = new Date().toISOString().split('T')[0]
 
-  const results = await fetch(`${env.API_SPORTS_URL}?date=${today}`, {
+  const results = await fetch(`${env.API_SPORTS_URL}/fixtures?date=${today}`, {
     headers: { 'x-apisports-key': env.API_SPORTS_KEY },
   }).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
