@@ -1,8 +1,5 @@
 import { env } from '@/env'
-import type {
-  ApiFixtureResponse,
-  ApiLeagueResponse
-} from './type'
+import type { ApiFixtureResponse, ApiLeagueResponse } from './type'
 
 import { INTERESTED_LEAGUES } from './constants'
 
@@ -30,15 +27,13 @@ export const fetchLeagues = async () => {
 export const fetchFixtures = async () => {
   const today = new Date().toISOString().split('T')[0]
 
-  const fetches = INTERESTED_LEAGUES.map((league) =>
-    fetch(
-      `https://api-football.com/v3/fixtures?league=${league.id}&date=${today}`,
-      {
-        headers: { 'x-apisports-key': env.API_SPORTS_KEY },
-      }
-    ).then((res) => res.json() as Promise<ApiFixtureResponse>)
-  )
+  const results = await fetch(`${env.API_SPORTS_URL}?date=${today}`, {
+    headers: { 'x-apisports-key': env.API_SPORTS_KEY },
+  }).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
-  const results = await Promise.all(fetches)
-  return results.flatMap((r) => r.response)
+  return results.response.filter((item) =>
+    INTERESTED_LEAGUES.some(
+      (l) => l.name === item.league.name && l.country === item.league.country
+    )
+  )
 }

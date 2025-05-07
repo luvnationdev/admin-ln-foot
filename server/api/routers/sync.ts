@@ -88,5 +88,6 @@ export const syncRouter = createTRPCRouter({
         })
       })
     )
+    return fixtures
   }),
 })
