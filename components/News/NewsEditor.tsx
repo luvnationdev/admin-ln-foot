@@ -2,23 +2,25 @@
 
 import type React from 'react'
 
-import { useState, useRef } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
-import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { X, Bold, Italic, List, ListOrdered, ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Image from '@tiptap/extension-image'
+import Placeholder from '@tiptap/extension-placeholder'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import { Bold, ImageIcon, Italic, List, ListOrdered, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 
+import { useUploadFile } from '@/lib/minio/upload'
 import { trpc } from '@/lib/trpc/react'
 import { toast } from 'sonner'
 
 export default function NewsEditor() {
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [featuredImage, setFeaturedImage] = useState('')
   const [author, setAuthor] = useState('Autor (user Connected)')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -42,35 +44,13 @@ export default function NewsEditor() {
 
   const { mutate: createNewsArticle } =
     trpc.newsArticles.createNewsArticle.useMutation()
-  const { mutateAsync: getPresignedUrl } =
-    trpc.upload.getPresignedUrl.useMutation()
 
-  async function uploadFile(file: File) {
-    const objectName = `${Date.now()}-${file.name}`
-
-    const { objectUrl, uploadUrl } = await getPresignedUrl({
-      objectName,
-    })
-
-    const res = await fetch(uploadUrl, {
-      method: 'PUT',
-      body: file,
-      headers: {
-        'Content-Type': file.type,
-      },
-    })
-
-    if (!res.ok) {
-      throw new Error('Upload failed')
-    }
-
-    // You can now use this to reference the file
-    return objectUrl
-  }
+  const { uploadUrl } = useUploadFile(uploadFile)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setUploadFile(file)
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -78,14 +58,6 @@ export default function NewsEditor() {
         }
       }
       reader.readAsDataURL(file)
-
-      console.log(file)
-      uploadFile(file)
-        .then((url) => {
-          setFeaturedImage(url)
-          console.log(url)
-        })
-        .catch(() => toast.error('Could not upload featured image'))
     }
   }
 
@@ -98,26 +70,32 @@ export default function NewsEditor() {
       content,
       author,
     })
-    // Ici vous pourriez envoyer les données à votre API
-    createNewsArticle(
-      {
-        imageUrl: '/placeholder.svg',
-        title,
-        summary: excerpt,
-        sourceUrl: 'lnfoot-cameroon',
-        content: content ?? '',
-      },
-      {
-        onError(error) {
-          console.log(error)
-        },
-        onSuccess(data) {
-          console.log('Sucessfull: ', data)
-        },
-      }
-    )
 
-    alert('Article enregistré!')
+    // upload image
+    uploadUrl()
+      .then((imageUrl) => {
+        // Ici vous pourriez envoyer les données à votre API
+        createNewsArticle(
+          {
+            title,
+            imageUrl,
+            summary: excerpt,
+            sourceUrl: 'lnfoot-cameroon',
+            content: content ?? '',
+          },
+          {
+            onError(error) {
+              console.log(error)
+            },
+            onSuccess(data) {
+              console.log('Sucessfull: ', data)
+            },
+          }
+        )
+
+        alert('Article enregistré!')
+      })
+      .catch(() => toast.error('Could not upload image'))
   }
 
   return (
