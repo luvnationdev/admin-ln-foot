@@ -4,6 +4,7 @@ export async function uploadFile(file: File) {
   const objectName = `uploads/${Date.now()}-${file.name}`
   const { mutateAsync: getPresignedUrl } =
     trpc.upload.getPresignedUrl.useMutation()
+  console.log({ objectName })
 
   const { objectUrl, uploadUrl } = await getPresignedUrl({
     objectName,
