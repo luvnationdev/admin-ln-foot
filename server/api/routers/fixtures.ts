@@ -5,18 +5,27 @@ import {
   publicProcedure,
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { fixtures as FixturesTable, teams as TeamsTable } from '@/server/db/schema'
-import { desc, eq, inArray } from 'drizzle-orm'
+import {
+  fixtures as FixturesTable,
+  teams as TeamsTable,
+} from '@/server/db/schema'
+import { desc, eq } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
+const zTeamSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  logo: z.string().nullable(),
+})
 export const zFixtureSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
   apiSource: z.string().nullable(),
   leagueId: z.string(),
-  team1Id: z.string(),
-  team2Id: z.string(),
+  team1: zTeamSchema.nullable(),
+  team2: zTeamSchema.nullable(),
   matchDatetime: z.date(),
   apiFixtureId: z.string().nullable(),
   status: z.string().nullable(),
@@ -26,41 +35,23 @@ export const zFixtureSchema = z.object({
 
 export const fixturesRouter = createTRPCRouter({
   latest: publicProcedure.output(z.array(zFixtureSchema)).query(async () => {
-    const matches = await db.query.fixtures.findMany({
-      orderBy: [desc(FixturesTable.matchDatetime)],
-      limit: 10,
-    })
-    const teams = await db.query.teams.findMany({
-      where: inArray(
-        TeamsTable.id,
-        matches
-          .map((match) => match.team1Id ?? '')
-          .concat(matches.map((match) => match.team2Id ?? ''))
-      ),
-    })
-
-    const formattedMatches = await Promise.all(
-      matches.map(async (match) => {
-        const team1 = teams.find((team) => team.id === match.team1Id)
-        const team2 = teams.find((team) => team.id === match.team2Id)
-        return {
-          ...match,
-          team1: team1?.teamName ?? null,
-          team2: team2?.teamName ?? null,
-        }
-      })
-    )
-
-    return formattedMatches
+    const fixtures = await selectFixtures()
+    return fixtures.map(({ fixture, team1, team2 }) => ({
+      ...fixture,
+      team1,
+      team2,
+    }))
   }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .output(zFixtureSchema.optional())
+    .output(zFixtureSchema.nullable())
     .query(async ({ input }) => {
-      const match = await db.query.fixtures.findFirst({
-        where: eq(FixturesTable.id, input.id),
-      })
-      return match
+      const fixtures = await selectFixtures(1, input.id)
+      if (fixtures.length) {
+        const [{ fixture, team1, team2 }] = fixtures
+        return { ...fixture, team1, team2 }
+      }
+      return null
     }),
   createFixture: adminProcedure
     .input(
@@ -105,3 +96,37 @@ export const fixturesRouter = createTRPCRouter({
       return { success: true }
     }),
 })
+async function selectFixtures(limit?: number, id?: string) {
+  const team1Alias = alias(TeamsTable, 'team1')
+  const team2Alias = alias(TeamsTable, 'team2')
+
+  const query = db
+    .select({
+      fixture: FixturesTable,
+      team1: {
+        id: team1Alias.id,
+        name: team1Alias.teamName,
+        logo: team1Alias.logoUrl,
+      },
+      team2: {
+        id: team2Alias.id,
+        name: team2Alias.teamName,
+        logo: team2Alias.logoUrl,
+      },
+    })
+    .from(FixturesTable)
+    .leftJoin(team1Alias, eq(FixturesTable.team1Id, team1Alias.id))
+    .leftJoin(team2Alias, eq(FixturesTable.team2Id, team2Alias.id))
+    .orderBy(desc(FixturesTable.matchDatetime))
+
+  if (limit) {
+    query.limit(limit)
+  }
+
+  if (id) {
+    query.where(eq(FixturesTable.id, id))
+  }
+
+  const fixtures = await query
+  return fixtures
+}
