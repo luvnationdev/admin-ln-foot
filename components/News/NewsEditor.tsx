@@ -78,7 +78,7 @@ export default function NewsEditor() {
         createNewsArticle(
           {
             title,
-            imageUrl,
+            imageUrl: imageUrl,
             summary: excerpt,
             sourceUrl: 'lnfoot-cameroon',
             content: content ?? '',
@@ -108,7 +108,7 @@ export default function NewsEditor() {
         {featuredImage ? (
           <div className='relative w-full'>
             <img
-              src={featuredImage || '/placeholder.svg'}
+              src={featuredImage }
               alt='Featured'
               className='w-full h-48 object-cover rounded-md'
             />
