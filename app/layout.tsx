@@ -6,6 +6,7 @@ import Navbar from '@/components/Layout/navbar'
 import { TRPCReactProvider } from '@/lib/trpc/react'
 import { SessionProvider } from 'next-auth/react'
 import { auth } from '@/server/auth'
+import { Toaster } from 'sonner'
 
 const openSans = Open_Sans({
   variable: '--font-open-sans',
@@ -29,6 +30,7 @@ export default async function RootLayout({
         <TRPCReactProvider>
           <SessionProvider>
             <Navbar isLoggedIn={!!session} user={session?.user}/>
+            <Toaster />
             {children}
             <Footer />
           </SessionProvider>
