@@ -8,7 +8,9 @@ import { X } from 'lucide-react'
 
 export default function PublicitesForm() {
   const [fileUrl, setFileUrl] = useState("")
-    const [videoUrl, setVideoUrl] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')
   const [featuredImage, setFeaturedImage] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -45,8 +47,6 @@ export default function PublicitesForm() {
           <label htmlFor="file" className="block text-sm font-light">
             Insérer vidéo ou image
           </label>
-
-       
           <div id="file">
             <div
               className="border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
@@ -82,8 +82,8 @@ export default function PublicitesForm() {
 
         {/* Separator */}
         <div className="inline-flex items-center justify-center w-full">
-          <hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-            <span className="absolute px-3 font-medium text-gray-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-gray-900">ou</span>
+          <hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+          <span className="absolute px-3 font-medium text-gray-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-gray-900">ou</span>
         </div>
 
         {/* video ads */}
@@ -109,7 +109,32 @@ export default function PublicitesForm() {
           </div>
         </div>
 
+        <div className='space-y-2'>
+          <label htmlFor='title' className='block text-sm '>
+            Titre de la publicité
+          </label>
+          <input
+            type='text'
+            id='title'
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className='w-full px-3 py-2 border rounded-md'
+            placeholder='titre'
+          />
+        </div>
 
+        <div className='space-y-2'>
+          <label htmlFor='description' className='block text-sm'>
+            Description
+          </label>
+          <textarea
+            id='description'
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className='w-full px-3 py-2 border rounded-md'
+            placeholder='description'
+          />
+        </div>
 
         <button
           type="submit"
