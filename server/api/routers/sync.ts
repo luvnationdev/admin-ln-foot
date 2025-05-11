@@ -83,8 +83,17 @@ export const syncRouter = createTRPCRouter({
               leagueId: league!.id,
               team1Id: homeTeam!.id,
               team2Id: awayTeam!.id,
-              status: item.fixture.status.short
+              status: item.fixture.status.short,
             })
+          } else {
+            await tx
+              .update(FixturesTable)
+              .set({
+                score1: item.goals.home ?? 0,
+                score2: item.goals.away ?? 0,
+                status: item.fixture.status.short,
+              })
+              .where(eq(FixturesTable.id, existingFixture.id))
           }
         })
       })
