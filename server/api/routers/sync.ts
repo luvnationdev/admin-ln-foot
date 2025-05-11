@@ -21,6 +21,7 @@ export const syncRouter = createTRPCRouter({
           let league = await tx.query.leagues.findFirst({
             where: eq(LeaguesTable.apiLeagueId, apiLeagueId),
           })
+          console.log({ item, league })
           if (!league) {
             await tx.insert(LeaguesTable).values({
               country: item.league.country,
