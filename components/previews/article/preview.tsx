@@ -100,7 +100,7 @@ export default function Preview({ data }: PreviewProps) {
             <div className="border-t border-b py-4">
               <h3 className="text-sm font-medium text-gray-900 mb-2">Détail du produit</h3>
               <div className="text-sm text-gray-500">
-                {data.description || "profiter des toute derniere sortie de vos maillot de foot pour un confort total est une protection assurer de vos pied lors de vos choc"}
+                {data.description || "Ajouter une des description"}
               </div>
             </div>
 
