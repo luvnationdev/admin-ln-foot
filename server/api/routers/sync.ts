@@ -12,7 +12,7 @@ export const syncRouter = createTRPCRouter({
   syncData: ghActionProcedure.mutation(async () => {
     const apiSource = 'apisports'
     const fixtures = await fetchFixtures()
-
+    console.log(fixtures)
     await Promise.all(
       fixtures.map(async (item) => {
         await db.transaction(async (tx) => {
