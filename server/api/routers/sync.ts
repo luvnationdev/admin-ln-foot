@@ -93,6 +93,7 @@ export const syncRouter = createTRPCRouter({
                 score1: item.goals.home ?? 0,
                 score2: item.goals.away ?? 0,
                 status: item.fixture.status.short,
+                updatedAt: new Date(),
               })
               .where(eq(FixturesTable.id, existingFixture.id))
           }

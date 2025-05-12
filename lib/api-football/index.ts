@@ -31,7 +31,6 @@ export const fetchFixtures = async () => {
     headers: { 'x-apisports-key': env.API_SPORTS_KEY },
   }).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
-  console.log(results)
   return results.response.filter((item) =>
     INTERESTED_LEAGUES.some(
       (l) => l.name === item.league.name && l.country === item.league.country

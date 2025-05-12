@@ -5,14 +5,14 @@ import {
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
-  leagues as LeaguesTable,
   fixtures as FixturesTable,
+  leagues as LeaguesTable,
   teams as TeamsTable,
 } from '@/server/db/schema'
-import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
+import { and, desc, eq, isNull, or } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 import { zFixtureSchema } from './fixtures'
-import { alias } from 'drizzle-orm/pg-core'
 
 export const zLeagueSchema = z.object({
   id: z.string(),
@@ -30,7 +30,10 @@ export const zLeagueSchema = z.object({
 
 export const leaguesRouter = createTRPCRouter({
   list: publicProcedure.output(z.array(zLeagueSchema)).query(async () => {
-    return await getLeaguesWithFixtures()
+    const leagues = await db.query.leagues.findMany({
+      orderBy: [desc(LeaguesTable.createdAt)],
+    })
+    return leagues.map((league) => ({ ...league, fixtures: [] }))
   }),
   findOne: publicProcedure
     .input(
@@ -95,7 +98,6 @@ export const leaguesRouter = createTRPCRouter({
 async function getLeaguesWithFixtures(id?: string) {
   const team1Alias = alias(TeamsTable, 'team1')
   const team2Alias = alias(TeamsTable, 'team2')
-  const now = new Date()
 
   const rows = await db
     .select({
@@ -119,13 +121,10 @@ async function getLeaguesWithFixtures(id?: string) {
     .where(
       and(
         id ? eq(LeaguesTable.id, id) : undefined,
-        or(
-          gt(FixturesTable.matchDatetime, now),
-          isNull(FixturesTable.matchDatetime)
-        ) // tolerate null fixtures if no join
+        or(isNull(FixturesTable.matchDatetime)) // tolerate null fixtures if no join
       )
     )
-    .orderBy(desc(LeaguesTable.createdAt))
+    .orderBy(desc(LeaguesTable.updatedAt))
 
   const grouped: Record<
     string,
