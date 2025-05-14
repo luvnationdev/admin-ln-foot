@@ -12,7 +12,7 @@ export const syncRouter = createTRPCRouter({
   syncData: ghActionProcedure.mutation(async () => {
     const apiSource = 'apisports'
     const fixtures = await fetchFixtures()
-
+    console.log(fixtures)
     await Promise.all(
       fixtures.map(async (item) => {
         await db.transaction(async (tx) => {
@@ -21,6 +21,7 @@ export const syncRouter = createTRPCRouter({
           let league = await tx.query.leagues.findFirst({
             where: eq(LeaguesTable.apiLeagueId, apiLeagueId),
           })
+          console.log({ item, league })
           if (!league) {
             await tx.insert(LeaguesTable).values({
               country: item.league.country,
@@ -83,8 +84,18 @@ export const syncRouter = createTRPCRouter({
               leagueId: league!.id,
               team1Id: homeTeam!.id,
               team2Id: awayTeam!.id,
-              status: item.fixture.status.short
+              status: item.fixture.status.short,
             })
+          } else {
+            await tx
+              .update(FixturesTable)
+              .set({
+                score1: item.goals.home ?? 0,
+                score2: item.goals.away ?? 0,
+                status: item.fixture.status.short,
+                updatedAt: new Date(),
+              })
+              .where(eq(FixturesTable.id, existingFixture.id))
           }
         })
       })

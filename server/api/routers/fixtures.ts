@@ -1,3 +1,4 @@
+import { api } from '@/lib/trpc/server'
 import {
   adminProcedure,
   createTRPCRouter,
@@ -11,7 +12,7 @@ import {
 } from '@/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
-import { z } from 'zod'
+import { type TypeOf, z } from 'zod'
 
 const zTeamSchema = z.object({
   id: z.string(),
@@ -35,13 +36,40 @@ export const zFixtureSchema = z.object({
 
 export const fixturesRouter = createTRPCRouter({
   latest: publicProcedure.output(z.array(zFixtureSchema)).query(async () => {
+    const leagues = await api.leagues.list()
     const fixtures = await selectFixtures()
-    return fixtures.map(({ fixture, team1, team2 }) => ({
-      ...fixture,
-      team1,
-      team2,
-    }))
+
+    const { f: otherFixtures, l: localFixtures } = fixtures.reduce<{
+      l: Array<TypeOf<typeof zFixtureSchema>>
+      f: Array<TypeOf<typeof zFixtureSchema>>
+    }>(
+      (acc, cur) => {
+        const isCameroonLeague = leagues.some(
+          (l) =>
+            l.id === cur.fixture.leagueId &&
+            l.country.toLowerCase().includes('cameroon')
+        )
+
+        const fixtureData = {
+          ...cur.fixture,
+          team1: cur.team1,
+          team2: cur.team2,
+        }
+
+        if (isCameroonLeague) {
+          acc.l.push(fixtureData)
+        } else {
+          acc.f.push(fixtureData)
+        }
+
+        return acc
+      },
+      { l: [], f: [] }
+    )
+
+    return [...localFixtures, ...otherFixtures]
   }),
+
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .output(zFixtureSchema.nullable())
