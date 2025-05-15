@@ -3,11 +3,11 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { ecommerceArticles as EcommerceArticlesTable } from '@/server/db/schema'
-import { desc, eq } from 'drizzle-orm'
-import { z } from 'zod'
+} from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { ecommerceArticles as EcommerceArticlesTable } from "@/server/db/schema";
+import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const zEcommerceArticleSchema = z.object({
   id: z.string(),
@@ -21,7 +21,7 @@ export const zEcommerceArticleSchema = z.object({
   sourceUrl: z.string().nullable(),
   price: z.string().nullable(),
   ecommerceId: z.string().nullable(),
-})
+});
 
 export const ecommerceArticlesRouter = createTRPCRouter({
   latest: publicProcedure
@@ -29,18 +29,18 @@ export const ecommerceArticlesRouter = createTRPCRouter({
     .query(async () => {
       const articles = await db.query.ecommerceArticles.findMany({
         orderBy: [desc(EcommerceArticlesTable.createdAt)],
-      })
-      return articles
+      });
+      return articles;
     }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .output(zEcommerceArticleSchema.optional())
     .query(async ({ input }) => {
-      console.log("Hi there, Here's the id" + input.id)
+      console.log("Hi there, Here's the id" + input.id);
       const article = await db.query.ecommerceArticles.findFirst({
         where: eq(EcommerceArticlesTable.id, input.id),
-      })
-      return article
+      });
+      return article;
     }),
   createArticle: adminProcedure
     .input(
@@ -52,7 +52,7 @@ export const ecommerceArticlesRouter = createTRPCRouter({
         imageUrl: z.string(),
         sourceUrl: z.string(),
         ecommerceId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const article = await db.insert(EcommerceArticlesTable).values({
@@ -63,8 +63,8 @@ export const ecommerceArticlesRouter = createTRPCRouter({
         imageUrl: input.imageUrl,
         sourceUrl: input.sourceUrl,
         ecommerceId: input.ecommerceId,
-      })
-      return article
+      });
+      return article;
     }),
   updateArticle: adminProcedure
     .input(
@@ -77,7 +77,7 @@ export const ecommerceArticlesRouter = createTRPCRouter({
         imageUrl: z.string().optional(),
         sourceUrl: z.string().optional(),
         ecommerceId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const article = await db
@@ -91,8 +91,8 @@ export const ecommerceArticlesRouter = createTRPCRouter({
           sourceUrl: input.sourceUrl,
           ecommerceId: input.ecommerceId,
         })
-        .where(eq(EcommerceArticlesTable.id, input.id))
-      return article
+        .where(eq(EcommerceArticlesTable.id, input.id));
+      return article;
     }),
   deleteArticle: adminProcedure
     // .meta({ openapi: { method: 'GET', path: '/e-articles/one' } })
@@ -100,7 +100,7 @@ export const ecommerceArticlesRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await db
         .delete(EcommerceArticlesTable)
-        .where(eq(EcommerceArticlesTable.id, input.id))
-      return { success: true }
+        .where(eq(EcommerceArticlesTable.id, input.id));
+      return { success: true };
     }),
-})
+});

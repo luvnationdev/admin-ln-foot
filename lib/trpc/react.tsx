@@ -33,20 +33,21 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
       links: [
         loggerLink({
           enabled: (op): boolean =>
-            process.env.NODE_ENV === 'development' ||
-            (op.direction === 'down' && Boolean(op.result && op.result instanceof Error)),
+            process.env.NODE_ENV === "development" ||
+            (op.direction === "down" &&
+              Boolean(op.result && op.result instanceof Error)),
         }),
         httpBatchStreamLink({
           transformer: SuperJSON,
-          url: getBaseUrl() + '/api/trpc',
+          url: getBaseUrl() + "/api/trpc",
           headers: () => {
             const headers = new Headers();
-            headers.set('x-trpc-source', 'nextjs-react');
+            headers.set("x-trpc-source", "nextjs-react");
             return headers;
           },
         }),
       ],
-    })
+    }),
   );
 
   return (

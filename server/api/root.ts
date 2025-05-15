@@ -1,13 +1,13 @@
-import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc'
-import { fixturesRouter } from './routers/fixtures'
-import { newsArticleRouter } from './routers/news-articles'
-import { ecommerceArticlesRouter } from './routers/ecommerce-articles'
-import { highlightRouter } from './routers/highlights'
-import { leaguesRouter } from './routers/leagues'
-import { advertisementsRouter } from './routers/advertisements'
-import { teamRouter } from './routers/teams'
-import { syncRouter } from './routers/sync'
-import { uploadRouter } from './routers/upload'
+import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { fixturesRouter } from "./routers/fixtures";
+import { newsArticleRouter } from "./routers/news-articles";
+import { ecommerceArticlesRouter } from "./routers/ecommerce-articles";
+import { highlightRouter } from "./routers/highlights";
+import { leaguesRouter } from "./routers/leagues";
+import { advertisementsRouter } from "./routers/advertisements";
+import { teamRouter } from "./routers/teams";
+import { syncRouter } from "./routers/sync";
+import { uploadRouter } from "./routers/upload";
 
 /**
  * This is the primary router for your server.
@@ -24,10 +24,10 @@ export const appRouter = createTRPCRouter({
   teams: teamRouter,
   sync: syncRouter,
   upload: uploadRouter,
-})
+});
 
 // export type definition of API
-export type AppRouter = typeof appRouter
+export type AppRouter = typeof appRouter;
 
 /**
  * Create a server-side caller for the tRPC API.
@@ -36,4 +36,4 @@ export type AppRouter = typeof appRouter
  * const res = await trpc.post.all();
  *       ^? Post[]
  */
-export const createCaller = createCallerFactory(appRouter)
+export const createCaller = createCallerFactory(appRouter);

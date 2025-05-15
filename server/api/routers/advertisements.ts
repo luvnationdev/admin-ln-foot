@@ -3,11 +3,11 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { publicities as PublicitiesTable } from '@/server/db/schema'
-import { desc, eq } from 'drizzle-orm'
-import { z } from 'zod'
+} from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { publicities as PublicitiesTable } from "@/server/db/schema";
+import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
 
 const zAdvertisementSchema = z.object({
   id: z.string(),
@@ -17,7 +17,7 @@ const zAdvertisementSchema = z.object({
   description: z.string().nullable(),
   imageUrl: z.string().nullable(),
   referenceUrl: z.string().nullable(),
-})
+});
 export const advertisementsRouter = createTRPCRouter({
   latest: publicProcedure
     .output(z.array(zAdvertisementSchema))
@@ -25,8 +25,8 @@ export const advertisementsRouter = createTRPCRouter({
       const publicities = await db.query.publicities.findMany({
         orderBy: [desc(PublicitiesTable.createdAt)],
         limit: 10,
-      })
-      return publicities
+      });
+      return publicities;
     }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -34,8 +34,8 @@ export const advertisementsRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const advertisement = await db.query.publicities.findFirst({
         where: eq(PublicitiesTable.id, input.id),
-      })
-      return advertisement
+      });
+      return advertisement;
     }),
   createAdvertisement: adminProcedure
     .input(
@@ -44,13 +44,13 @@ export const advertisementsRouter = createTRPCRouter({
         description: z.string(),
         referenceUrl: z.string(),
         imageUrl: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const advertisement = await db.insert(PublicitiesTable).values({
         ...input,
-      })
-      return advertisement
+      });
+      return advertisement;
     }),
   updateAdvertisement: adminProcedure
     .input(
@@ -60,19 +60,21 @@ export const advertisementsRouter = createTRPCRouter({
         description: z.string().optional(),
         referenceUrl: z.string().optional(),
         imageUrl: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const advertisement = await db
         .update(PublicitiesTable)
         .set({ ...input })
-        .where(eq(PublicitiesTable.id, input.id))
-      return advertisement
+        .where(eq(PublicitiesTable.id, input.id));
+      return advertisement;
     }),
   deleteAdvertisement: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      await db.delete(PublicitiesTable).where(eq(PublicitiesTable.id, input.id))
-      return { success: true }
+      await db
+        .delete(PublicitiesTable)
+        .where(eq(PublicitiesTable.id, input.id));
+      return { success: true };
     }),
-})
+});

@@ -1,5 +1,5 @@
-import Link from "next/link"
-import Image from "next/image"
+import Link from "next/link";
+import Image from "next/image";
 import { FaGooglePlay } from "react-icons/fa";
 
 // Service and company links arrays
@@ -25,7 +25,13 @@ export default function Footer() {
     <footer className="bg-[#0a1e3c] text-white  ">
       {/* Logo */}
       <div className="flex justify-between overflow-hidden">
-        <Image src={"/ln-foot.svg"} alt="Logo" width={375} height={215} className="px-2 mb-12" />
+        <Image
+          src={"/ln-foot.svg"}
+          alt="Logo"
+          width={375}
+          height={215}
+          className="px-2 mb-12"
+        />
         <Image
           src={"/LN.png"}
           alt="Logo"
@@ -44,9 +50,10 @@ export default function Footer() {
             en matiere de foot!
           </h3>
           <p className="text-sm text-gray-300 mb-6 max-w-md">
-            Rejoignez notre communauté et recevez les dernières mises à jour, les points forts du jeu et du contenu
-            exclusif directement dans votre boîte de réception. suivez-nous sur les réseaux sociaux et abonnez-vous à
-            notre newsletter dès aujourd&apos;hui.
+            Rejoignez notre communauté et recevez les dernières mises à jour,
+            les points forts du jeu et du contenu exclusif directement dans
+            votre boîte de réception. suivez-nous sur les réseaux sociaux et
+            abonnez-vous à notre newsletter dès aujourd&apos;hui.
           </p>
 
           {/* Buttons */}
@@ -73,9 +80,12 @@ export default function Footer() {
         {/* Footer Links */}
         <div className="md:col-span-2">
           <ul className="space-y-2 text-sm">
-            {serviceLinks.map(link => (
+            {serviceLinks.map((link) => (
               <li key={link.label}>
-                <Link href={link.href} className="hover:text-gray-300 transition-colors">
+                <Link
+                  href={link.href}
+                  className="hover:text-gray-300 transition-colors"
+                >
                   {link.label}
                 </Link>
               </li>
@@ -85,9 +95,12 @@ export default function Footer() {
 
         <div className="md:col-span-2">
           <ul className="space-y-2 text-sm">
-            {companyLinks.map(link => (
+            {companyLinks.map((link) => (
               <li key={link.label}>
-                <Link href={link.href} className="hover:text-gray-300 transition-colors">
+                <Link
+                  href={link.href}
+                  className="hover:text-gray-300 transition-colors"
+                >
                   {link.label}
                 </Link>
               </li>
@@ -112,5 +125,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

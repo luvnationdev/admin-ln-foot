@@ -1,4 +1,3 @@
-import { api } from '@/lib/trpc/server'
 import {
   adminProcedure,
   createTRPCRouter,
@@ -8,6 +7,7 @@ import {
 import { db } from '@/server/db'
 import {
   fixtures as FixturesTable,
+  leagues as LeaguesTable,
   teams as TeamsTable,
 } from '@/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -36,7 +36,9 @@ export const zFixtureSchema = z.object({
 
 export const fixturesRouter = createTRPCRouter({
   latest: publicProcedure.output(z.array(zFixtureSchema)).query(async () => {
-    const leagues = await api.leagues.list()
+    const leagues = await db.query.leagues.findMany({
+      orderBy: [desc(LeaguesTable.createdAt)],
+    });
     const fixtures = await selectFixtures()
 
     const { f: otherFixtures, l: localFixtures } = fixtures.reduce<{

@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
+import { useState } from "react";
 
 export default function EnteteForm() {
-  const [title, setTitle] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
+  const [title, setTitle] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Logique pour soumettre le formulaire
-    console.log({ title, imageUrl })
-  }
+    console.log({ title, imageUrl });
+  };
 
   const handleFileSelect = () => {
     // Simuler la sélection de fichier
-    setImageUrl("/placeholder-header.jpg")
-  }
+    setImageUrl("/placeholder-header.jpg");
+  };
 
   return (
     <div className="w-full">
@@ -48,7 +48,11 @@ export default function EnteteForm() {
               className="flex-grow px-3 py-2 border rounded-l-md"
               placeholder="lien"
             />
-            <button type="button" onClick={handleFileSelect} className="px-3 py-2 text-white bg-gray-400 rounded-r-md">
+            <button
+              type="button"
+              onClick={handleFileSelect}
+              className="px-3 py-2 text-white bg-gray-400 rounded-r-md"
+            >
               Sélectionner image
             </button>
           </div>
@@ -62,5 +66,5 @@ export default function EnteteForm() {
         </button>
       </form>
     </div>
-  )
+  );
 }
