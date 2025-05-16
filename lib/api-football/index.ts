@@ -28,11 +28,11 @@ export const fetchFixtures = async () => {
   const today = new Date()
 
   const fromDate = new Date(today)
-  fromDate.setDate(fromDate.getDate() - 2) // 2 days before today
+  fromDate.setDate(fromDate.getDate() - 7) // 7 days before today
   const from = fromDate.toISOString().split('T')[0]
 
   const toDate = new Date(today)
-  toDate.setDate(toDate.getDate() + 4) // 4 days after today
+  toDate.setDate(toDate.getDate() + 7) // 7 days after today
   const to = toDate.toISOString().split('T')[0]
 
   const results = await fetch(
