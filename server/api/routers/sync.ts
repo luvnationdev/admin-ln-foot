@@ -13,16 +13,18 @@ export const syncRouter = createTRPCRouter({
   syncData: ghActionProcedure.mutation(async () => {
     const apiSource = 'apisports'
     const fixtures = await fetchFixtures()
-    console.log(fixtures)
-    await Promise.all(
-      fixtures.map(async (item) => {
-        await db.transaction(async (tx) => {
+
+    await db.transaction(async (tx) => {
+      // Clear the fixtures table before inserting/updating
+      await tx.delete(FixturesTable)
+
+      await Promise.all(
+        fixtures.map(async (item) => {
           // League
           const apiLeagueId = item.league.id.toString()
           let league = await tx.query.leagues.findFirst({
             where: eq(LeaguesTable.apiLeagueId, apiLeagueId),
           })
-          console.log({ item, league })
           if (!league) {
             await tx.insert(LeaguesTable).values({
               country: item.league.country,
@@ -69,39 +71,25 @@ export const syncRouter = createTRPCRouter({
               where: eq(TeamsTable.apiTeamId, apiAwayTeamId),
             })
           }
+
           const scores = calculateFinalScore(item.score)
 
-          // Fixture
-          const apiFixtureId = item.fixture.id.toString()
-          const existingFixture = await tx.query.fixtures.findFirst({
-            where: eq(FixturesTable.apiFixtureId, apiFixtureId),
+          // Insert new fixture (no check since we cleared the table)
+          await tx.insert(FixturesTable).values({
+            apiSource,
+            score1: scores.home,
+            score2: scores.away,
+            matchDatetime: new Date(item.fixture.date),
+            apiFixtureId: item.fixture.id.toString(),
+            leagueId: league!.id,
+            team1Id: homeTeam!.id,
+            team2Id: awayTeam!.id,
+            status: item.fixture.status.short,
           })
-          if (!existingFixture) {
-            await tx.insert(FixturesTable).values({
-              apiSource,
-              score1: scores.home,
-              score2: scores.away,
-              matchDatetime: new Date(item.fixture.date),
-              apiFixtureId,
-              leagueId: league!.id,
-              team1Id: homeTeam!.id,
-              team2Id: awayTeam!.id,
-              status: item.fixture.status.short,
-            })
-          } else {
-            await tx
-              .update(FixturesTable)
-              .set({
-                score1: scores.home,
-                score2: scores.away,
-                status: item.fixture.status.short,
-                updatedAt: new Date(),
-              })
-              .where(eq(FixturesTable.id, existingFixture.id))
-          }
         })
-      })
-    )
+      )
+    })
+
     return fixtures
   }),
 })
