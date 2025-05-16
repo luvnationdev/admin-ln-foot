@@ -92,8 +92,8 @@ export const syncRouter = createTRPCRouter({
             await tx
               .update(FixturesTable)
               .set({
-                score1: item.goals.home ?? 0,
-                score2: item.goals.away ?? 0,
+                score1: scores.home,
+                score2: scores.away,
                 status: item.fixture.status.short,
                 updatedAt: new Date(),
               })
