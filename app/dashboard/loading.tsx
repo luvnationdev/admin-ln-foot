@@ -1,5 +1,5 @@
-import DashboardSkeleton from "@/components/skeletons/dashboard-skeleton"
+import DashboardSkeleton from "@/components/skeletons/dashboard-skeleton";
 
 export default function Loading() {
-  return <DashboardSkeleton variant="web" />
+  return <DashboardSkeleton variant="web" />;
 }

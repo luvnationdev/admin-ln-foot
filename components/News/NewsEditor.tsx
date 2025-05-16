@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import type React from 'react'
+import type React from "react";
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,39 +34,39 @@ export default function NewsEditor() {
       StarterKit,
       Image,
       Placeholder.configure({
-        placeholder: 'Commencez à écrire votre contenu ici...',
+        placeholder: "Commencez à écrire votre contenu ici...",
       }),
     ],
-    content: '',
+    content: "",
     editorProps: {
       attributes: {
         class:
-          'prose prose-blue max-w-none focus:outline-none min-h-[200px] py-4',
+          "prose prose-blue max-w-none focus:outline-none min-h-[200px] py-4",
       },
     },
-  })
+  });
 
   const { mutate: createNewsArticle } =
-    trpc.newsArticles.createNewsArticle.useMutation()
+    trpc.newsArticles.createNewsArticle.useMutation();
 
-  const { uploadUrl } = useUploadFile(uploadFile)
+  const { uploadUrl } = useUploadFile(uploadFile);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setUploadFile(file)
-      const reader = new FileReader()
+      setUploadFile(file);
+      const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setFeaturedImage(event.target.result as string)
+          setFeaturedImage(event.target.result as string);
         }
-      }
-      reader.readAsDataURL(file)
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSave = () => {
-    const content = editor?.getHTML()
+    const content = editor?.getHTML();
     console.log({
       title,
       excerpt,
@@ -84,8 +84,8 @@ export default function NewsEditor() {
             title,
             imageUrl: imageUrl,
             summary: excerpt,
-            sourceUrl: 'lnfoot-cameroon',
-            content: content ?? '',
+            sourceUrl: "lnfoot-cameroon",
+            content: content ?? "",
           },
           {
             onError(error) {
@@ -99,8 +99,8 @@ export default function NewsEditor() {
           }
         )
       })
-      .catch(() => toast.error('Could not upload image'))
-  }
+      .catch(() => toast.error("Could not upload image"));
+  };
 
   const formattedDate = new Date().toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -109,42 +109,42 @@ export default function NewsEditor() {
   })
 
   return (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {/* Featured Image Upload */}
       <div
-        className='border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors'
+        className="border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
         onClick={() => fileInputRef.current?.click()}
       >
         {featuredImage ? (
-          <div className='relative w-full'>
+          <div className="relative w-full">
             <img
               src={featuredImage }
               alt='Featured'
               className='w-full h-48 object-cover rounded-md'
             />
             <button
-              className='absolute top-2 right-2 bg-white rounded-full p-1'
+              className="absolute top-2 right-2 bg-white rounded-full p-1"
               onClick={(e) => {
-                e.stopPropagation()
-                setFeaturedImage('')
+                e.stopPropagation();
+                setFeaturedImage("");
               }}
             >
-              <X className='h-4 w-4 text-gray-500' />
+              <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
         ) : (
-          <div className='text-blue-500 text-center'>
-            <span className='text-3xl'>+</span>
-            <p className='mt-2 text-sm text-blue-500'>
+          <div className="text-blue-500 text-center">
+            <span className="text-3xl">+</span>
+            <p className="mt-2 text-sm text-blue-500">
               Ajouter une image à la une
             </p>
           </div>
         )}
         <input
-          type='file'
+          type="file"
           ref={fileInputRef}
-          className='hidden'
-          accept='image/*'
+          className="hidden"
+          accept="image/*"
           onChange={handleImageUpload}
         />
       </div>
@@ -154,7 +154,7 @@ export default function NewsEditor() {
         placeholder="Titre de l'article"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className='text-lg border-blue-200 focus:border-blue-500'
+        className="text-lg border-blue-200 focus:border-blue-500"
       />
 
       {/* Excerpt */}
@@ -162,7 +162,7 @@ export default function NewsEditor() {
         placeholder="Résumé de l'article"
         value={excerpt}
         onChange={(e) => setExcerpt(e.target.value)}
-        className='border-blue-200 focus:border-blue-500'
+        className="border-blue-200 focus:border-blue-500"
         rows={2}
       />
 
@@ -302,12 +302,12 @@ export default function NewsEditor() {
         <div className='flex items-center gap-2'>
           <Button
             onClick={handleSave}
-            className='bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50'
+            className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
           >
             Enregistrer
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }

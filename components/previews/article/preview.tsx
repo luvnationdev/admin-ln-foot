@@ -1,21 +1,21 @@
-import { ProductData } from "@/types/product"
-import { useState } from "react"
-import { toast } from "sonner"
+import { type ProductData } from "@/types/product";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel"
+} from "@/components/ui/carousel";
 
 interface PreviewProps {
-  data: ProductData
+  data: ProductData;
 }
 
 export default function Preview({ data }: PreviewProps) {
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedSize, setSelectedSize] = useState<string>()
-  const [selectedShoeSize, setSelectedShoeSize] = useState<string>()
-  const [selectedColor, setSelectedColor] = useState<string>()
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string>();
+  const [selectedShoeSize, setSelectedShoeSize] = useState<string>();
+  const [selectedColor, setSelectedColor] = useState<string>();
 
   const handleBuy = () => {
     const selection = {
@@ -25,17 +25,19 @@ export default function Preview({ data }: PreviewProps) {
       selectedSize,
       selectedShoeSize,
       selectedColor,
-    }
+    };
 
     toast.success("Sélection du produit", {
       description: (
         <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(selection, null, 2)}</code>
+          <code className="text-white">
+            {JSON.stringify(selection, null, 2)}
+          </code>
         </pre>
       ),
       duration: 5000,
-    })
-  }
+    });
+  };
 
   return (
     <div className="rounded-lg border border-gray-300 border-dashed p-4 max-w-sm mx-auto">
@@ -61,9 +63,12 @@ export default function Preview({ data }: PreviewProps) {
                 <Carousel className="w-full">
                   <CarouselContent>
                     {data.images.map((image, index) => (
-                      <CarouselItem key={index} className="basis-1/4 cursor-pointer">
-                        <div 
-                          className={`h-12 relative rounded aspect-square overflow-hidden ${selectedImage === index ? 'border-2 border-primary' : ''}`}
+                      <CarouselItem
+                        key={index}
+                        className="basis-1/4 cursor-pointer"
+                      >
+                        <div
+                          className={`h-12 relative rounded aspect-square overflow-hidden ${selectedImage === index ? "border-2 border-primary" : ""}`}
                           onClick={() => setSelectedImage(index)}
                         >
                           <img
@@ -84,7 +89,9 @@ export default function Preview({ data }: PreviewProps) {
           <div className="space-y-4">
             {/* Product title and rating */}
             <div>
-              <h2 className="font-bold text-2xl mb-2">{data.name || "Nom du produit"}</h2>
+              <h2 className="font-bold text-2xl mb-2">
+                {data.name || "Nom du produit"}
+              </h2>
               <div className="flex items-center mb-2">
                 <span className="inline-flex items-center bg-yellow-100 text-yellow-800 rounded-full px-2 py-1 text-xs font-medium">
                   <span className="text-yellow-500 mr-1">★</span>
@@ -98,7 +105,9 @@ export default function Preview({ data }: PreviewProps) {
 
             {/* Product description */}
             <div className="border-t border-b py-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Détail du produit</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">
+                Détail du produit
+              </h3>
               <div className="text-sm text-gray-500">
                 {data.description || "Ajouter une des description"}
               </div>
@@ -108,15 +117,19 @@ export default function Preview({ data }: PreviewProps) {
             <div className="space-y-4">
               {data.sizes && data.sizes.length > 0 && (
                 <div>
-                  <span className="text-sm font-medium block mb-2">Sélectionner la taille</span>
+                  <span className="text-sm font-medium block mb-2">
+                    Sélectionner la taille
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {data.sizes.map((size, index) => (
                       <span
                         key={index}
                         className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium cursor-pointer border 
-                          ${selectedSize === size 
-                            ? 'border-primary bg-white text-primary' 
-                            : 'border-gray-200 bg-white text-gray-600'}`}
+                          ${
+                            selectedSize === size
+                              ? "border-primary bg-white text-primary"
+                              : "border-gray-200 bg-white text-gray-600"
+                          }`}
                         onClick={() => setSelectedSize(size)}
                       >
                         {size}
@@ -129,15 +142,19 @@ export default function Preview({ data }: PreviewProps) {
               {/* Shoe size selection */}
               {data.shoeSizes && data.shoeSizes.length > 0 && (
                 <div>
-                  <span className="text-sm font-medium block mb-2">Pointures</span>
+                  <span className="text-sm font-medium block mb-2">
+                    Pointures
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {data.shoeSizes.map((size, index) => (
                       <span
                         key={index}
                         className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium cursor-pointer border 
-                          ${selectedShoeSize === size 
-                            ? 'border-primary bg-white text-primary' 
-                            : 'border-gray-200 bg-white text-gray-600'}`}
+                          ${
+                            selectedShoeSize === size
+                              ? "border-primary bg-white text-primary"
+                              : "border-gray-200 bg-white text-gray-600"
+                          }`}
                         onClick={() => setSelectedShoeSize(size)}
                       >
                         {size}
@@ -150,13 +167,15 @@ export default function Preview({ data }: PreviewProps) {
               {/* Color selection */}
               {data.colors && data.colors.length > 0 && (
                 <div>
-                  <span className="text-sm font-medium block mb-2">Sélectionner couleur: {selectedColor ?? 'Noire'}</span>
+                  <span className="text-sm font-medium block mb-2">
+                    Sélectionner couleur: {selectedColor ?? "Noire"}
+                  </span>
                   <div className="flex flex-wrap gap-2 items-center">
                     {data.colors.map((color, index) => (
                       <span
                         key={index}
                         className={`inline-flex items-center rounded-full w-8 h-8 cursor-pointer border
-                          ${selectedColor === color ? 'ring-2 ring-primary ring-offset-2' : 'border-gray-200'}`}
+                          ${selectedColor === color ? "ring-2 ring-primary ring-offset-2" : "border-gray-200"}`}
                         style={{ backgroundColor: color }}
                         title={color}
                         onClick={() => setSelectedColor(color)}
@@ -178,5 +197,5 @@ export default function Preview({ data }: PreviewProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

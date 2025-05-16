@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react"
 
@@ -25,7 +25,7 @@ export default function PublicitesForm() {
   const { uploadUrl } = useUploadFile(uploadFile)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
       // Si l'utilisateur a sélectionné une image, on désactive la vidéo
       setMediaType('image')
@@ -35,12 +35,12 @@ export default function PublicitesForm() {
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
-          setFeaturedImage(event.target.result as string)
+          setFeaturedImage(event.target.result as string);
         }
-      }
-      reader.readAsDataURL(file)
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleVideoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Si l'utilisateur saisit une URL de vidéo, on désactive l'image
@@ -77,9 +77,6 @@ export default function PublicitesForm() {
         // Upload de l'image et création de la publicité
         toast.loading('Upload de l\'image...', { id: toastId })
         const uploadedImageUrl = await uploadUrl()
-
-
-        const imageUrl = await uploadUrl()
         
         toast.loading('Enregistrement de la publicité...', { id: toastId })
         
@@ -280,5 +277,5 @@ export default function PublicitesForm() {
         </div>
       </form>
     </div>
-  )
+  );
 }

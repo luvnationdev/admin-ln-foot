@@ -3,11 +3,11 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { highlights as HighlightsTable } from '@/server/db/schema'
-import { desc, eq } from 'drizzle-orm'
-import { z } from 'zod'
+} from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { highlights as HighlightsTable } from "@/server/db/schema";
+import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const zHighlightSchema = z.object({
   id: z.string(),
@@ -21,25 +21,23 @@ export const zHighlightSchema = z.object({
   thumbnailUrl: z.string().nullable(),
   publishedAt: z.date().nullable(),
   apiHighlightId: z.string().nullable(),
-})
+});
 
 export const highlightRouter = createTRPCRouter({
-  latest: publicProcedure
-    .output(z.array(zHighlightSchema))
-    .query(async () => {
-      const highlights = await db.query.highlights.findMany({
-        orderBy: [desc(HighlightsTable.publishedAt)],
-      })
-      return highlights
-    }),
+  latest: publicProcedure.output(z.array(zHighlightSchema)).query(async () => {
+    const highlights = await db.query.highlights.findMany({
+      orderBy: [desc(HighlightsTable.publishedAt)],
+    });
+    return highlights;
+  }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .output(zHighlightSchema.optional())
     .query(async ({ input }) => {
       const highlight = await db.query.highlights.findFirst({
         where: eq(HighlightsTable.id, input.id),
-      })
-      return highlight
+      });
+      return highlight;
     }),
   createHighlight: adminProcedure
     .input(
@@ -50,7 +48,7 @@ export const highlightRouter = createTRPCRouter({
         thumbnailUrl: z.string(),
         apiSource: z.string().optional(),
         apiHighlightId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const highlight = await db.insert(HighlightsTable).values({
@@ -60,8 +58,8 @@ export const highlightRouter = createTRPCRouter({
         thumbnailUrl: input.thumbnailUrl,
         apiSource: input.apiSource,
         apiHighlightId: input.apiHighlightId,
-      })
-      return highlight
+      });
+      return highlight;
     }),
   updateHighlight: adminProcedure
     .input(
@@ -73,7 +71,7 @@ export const highlightRouter = createTRPCRouter({
         thumbnailUrl: z.string().optional(),
         apiSource: z.string().optional(),
         apiHighlightId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const highlight = await db
@@ -86,13 +84,13 @@ export const highlightRouter = createTRPCRouter({
           apiSource: input.apiSource,
           apiHighlightId: input.apiHighlightId,
         })
-        .where(eq(HighlightsTable.id, input.id))
-      return highlight
+        .where(eq(HighlightsTable.id, input.id));
+      return highlight;
     }),
   deleteHighlight: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      await db.delete(HighlightsTable).where(eq(HighlightsTable.id, input.id))
-      return { success: true }
+      await db.delete(HighlightsTable).where(eq(HighlightsTable.id, input.id));
+      return { success: true };
     }),
-})
+});

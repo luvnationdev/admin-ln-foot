@@ -1,29 +1,28 @@
-'use client'
+"use client";
 
-import React from 'react'
+import React from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { trpc } from '@/lib/trpc/react'
-import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { NewsArticle } from '@/types/news'
+} from "@/components/ui/table";
+import { trpc } from "@/lib/trpc/react";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import { type NewsArticle } from "@/types/news";
 
 export default function NewsTable() {
-  const { data: newsArticles, isLoading } = trpc.newsArticles.latest.useQuery()
+  const { data: newsArticles, isLoading } = trpc.newsArticles.latest.useQuery();
 
   if (isLoading) {
     return (
       <div className="w-full p-8 flex justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -43,15 +42,17 @@ export default function NewsTable() {
         </TableHeader>
         <TableBody>
           {newsArticles?.length ? (
-            /* eslint-disable @typescript-eslint/no-explicit-any */ 
+            /* eslint-disable @typescript-eslint/no-explicit-any */
             newsArticles.map((article: NewsArticle) => (
               <TableRow key={article.id}>
-                <TableCell className="font-medium">{article.title ?? 'No Title'}</TableCell>
-                <TableCell>{article.apiSource ?? 'Admin'}</TableCell>
+                <TableCell className="font-medium">
+                  {article.title ?? "No Title"}
+                </TableCell>
+                <TableCell>{article.apiSource ?? "Admin"}</TableCell>
                 <TableCell>
                   {article.summary
-                    ? article.summary.substring(0, 100) + '...'
-                    : 'No content'}
+                    ? article.summary.substring(0, 100) + "..."
+                    : "No content"}
                 </TableCell>
                 <TableCell className="text-right">
                   {article.publishedAt
@@ -60,11 +61,11 @@ export default function NewsTable() {
                         locale: fr,
                       })
                     : article.createdAt
-                    ? formatDistanceToNow(new Date(article.createdAt), {
-                        addSuffix: true,
-                        locale: fr,
-                      })
-                    : '-'}
+                      ? formatDistanceToNow(new Date(article.createdAt), {
+                          addSuffix: true,
+                          locale: fr,
+                        })
+                      : "-"}
                 </TableCell>
               </TableRow>
             ))
@@ -78,5 +79,5 @@ export default function NewsTable() {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

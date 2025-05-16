@@ -1,5 +1,5 @@
-import { createEnv } from '@t3-oss/env-nextjs'
-import { z } from 'zod'
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
 
 export const env = createEnv({
   /**
@@ -8,14 +8,14 @@ export const env = createEnv({
    */
   server: {
     AUTH_SECRET:
-      process.env.NODE_ENV === 'production'
+      process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
     DATABASE_URL: z.string().url(),
-    DATABASE_SCHEMA: z.string().default('landing'),
+    DATABASE_SCHEMA: z.string().default("landing"),
     NODE_ENV: z
-      .enum(['development', 'test', 'production'])
-      .default('development'),
+      .enum(["development", "test", "production"])
+      .default("development"),
     KEYCLOAK_CLIENT_ID: z.string(),
     KEYCLOAK_ISSUER: z.string(),
     API_SPORTS_KEY: z.string(),
@@ -61,4 +61,4 @@ export const env = createEnv({
    * `SOME_VAR=''` will throw an error.
    */
   emptyStringAsUndefined: true,
-})
+});

@@ -1,14 +1,12 @@
-import { auth } from '@/server/auth'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { auth } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
-  const session = await auth()
+  const session = await auth();
 
   if (!session) {
-    redirect('/api/auth/signin')
+    redirect("/api/auth/signin");
   }
 
-  redirect('/dashboard/web')
-
+  redirect("/dashboard/web");
 }
