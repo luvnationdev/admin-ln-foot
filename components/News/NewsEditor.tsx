@@ -2,28 +2,32 @@
 
 import type React from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import Image from "@tiptap/extension-image";
-import Placeholder from "@tiptap/extension-placeholder";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { Bold, ImageIcon, Italic, List, ListOrdered, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import Image from '@tiptap/extension-image'
+import Placeholder from '@tiptap/extension-placeholder'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import { Bold, Edit2, Eye, ImageIcon, Italic, List, ListOrdered, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 
-import { useUploadFile } from "@/lib/minio/upload";
-import { trpc } from "@/lib/trpc/react";
-import { toast } from "sonner";
+import { useUploadFile } from '@/lib/minio/upload'
+import { trpc } from '@/lib/trpc/react'
+import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toast } from 'sonner'
 
 export default function NewsEditor() {
-  const [title, setTitle] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [featuredImage, setFeaturedImage] = useState("");
-  const [author] = useState("Autor (user Connected)");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState('')
+  const [excerpt, setExcerpt] = useState('')
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [featuredImage, setFeaturedImage] = useState('')
+  const [view, setView] = useState<"edit" | "preview">("edit")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { userName } = useCurrentUser()
 
   const editor = useEditor({
     extensions: [
@@ -68,8 +72,8 @@ export default function NewsEditor() {
       excerpt,
       featuredImage,
       content,
-      author,
-    });
+      author: userName,
+    })
 
     // upload image
     uploadUrl()
@@ -78,25 +82,31 @@ export default function NewsEditor() {
         createNewsArticle(
           {
             title,
-            imageUrl,
+            imageUrl: imageUrl,
             summary: excerpt,
             sourceUrl: "lnfoot-cameroon",
             content: content ?? "",
           },
           {
             onError(error) {
-              console.log(error);
+              console.log(error)
+              toast.error("Erreur lors de la création de l'article")
             },
             onSuccess(data) {
-              console.log("Sucessfull: ", data);
+              console.log('Sucessfull: ', data)
+              toast.success('Article créé avec succès!')
             },
-          },
-        );
-
-        alert("Article enregistré!");
+          }
+        )
       })
       .catch(() => toast.error("Could not upload image"));
   };
+
+  const formattedDate = new Date().toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
 
   return (
     <div className="space-y-4">
@@ -108,9 +118,9 @@ export default function NewsEditor() {
         {featuredImage ? (
           <div className="relative w-full">
             <img
-              src={featuredImage || "/placeholder.svg"}
-              alt="Featured"
-              className="w-full h-48 object-cover rounded-md"
+              src={featuredImage }
+              alt='Featured'
+              className='w-full h-48 object-cover rounded-md'
             />
             <button
               className="absolute top-2 right-2 bg-white rounded-full p-1"
@@ -156,83 +166,140 @@ export default function NewsEditor() {
         rows={2}
       />
 
-      {/* Rich Text Editor */}
-      <div className="border border-blue-200 rounded-lg overflow-hidden">
-        <div className="flex items-center gap-1 p-2 border-b border-blue-100">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={cn(
-              "p-2 h-8 w-8",
-              editor?.isActive("bold") && "bg-blue-100",
-            )}
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
-            className={cn(
-              "p-2 h-8 w-8",
-              editor?.isActive("italic") && "bg-blue-100",
-            )}
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            className={cn(
-              "p-2 h-8 w-8",
-              editor?.isActive("bulletList") && "bg-blue-100",
-            )}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            className={cn(
-              "p-2 h-8 w-8",
-              editor?.isActive("orderedList") && "bg-blue-100",
-            )}
-          >
-            <ListOrdered className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              const url = window.prompt("URL de l'image");
-              if (url) {
-                editor?.chain().focus().setImage({ src: url }).run();
-              }
-            }}
-            className="p-2 h-8 w-8"
-          >
-            <ImageIcon className="h-4 w-4" />
-          </Button>
+      {/* Tabs for Edit/Preview */}
+      <Tabs value={view} onValueChange={(v) => setView(v as "edit" | "preview")} className="w-full">
+        <div className="flex justify-between items-center mb-2">
+          <TabsList className="grid grid-cols-2 w-64">
+            <TabsTrigger value="edit" className="flex items-center gap-1">
+              <Edit2 className="h-4 w-4" />
+              Éditer
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              Prévisualiser
+            </TabsTrigger>
+          </TabsList>
         </div>
-        <EditorContent editor={editor} className="p-4" />
-      </div>
+
+        <TabsContent value="edit" className="mt-0">
+          {/* Rich Text Editor */}
+          <div className='border border-blue-200 rounded-lg overflow-hidden'>
+            <div className='flex items-center gap-1 p-2 border-b border-blue-100'>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={cn(
+                  'p-2 h-8 w-8',
+                  editor?.isActive('bold') && 'bg-blue-100'
+                )}
+              >
+                <Bold className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={cn(
+                  'p-2 h-8 w-8',
+                  editor?.isActive('italic') && 'bg-blue-100'
+                )}
+              >
+                <Italic className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={cn(
+                  'p-2 h-8 w-8',
+                  editor?.isActive('bulletList') && 'bg-blue-100'
+                )}
+              >
+                <List className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                className={cn(
+                  'p-2 h-8 w-8',
+                  editor?.isActive('orderedList') && 'bg-blue-100'
+                )}
+              >
+                <ListOrdered className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => {
+                  const url = window.prompt("URL de l'image")
+                  if (url) {
+                    editor?.chain().focus().setImage({ src: url }).run()
+                  }
+                }}
+                className='p-2 h-8 w-8'
+              >
+                <ImageIcon className='h-4 w-4' />
+              </Button>
+            </div>
+            <EditorContent editor={editor} className='p-4' />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="preview" className="mt-0">
+          {/* Preview */}
+          <div className="border border-blue-200 rounded-lg p-6 bg-white">
+            <div className="max-w-3xl mx-auto">
+              {featuredImage && (
+                <div className="mb-6">
+                  <img
+                    src={featuredImage || "/placeholder.svg"}
+                    alt={title || "Featured image"}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {title ? (
+                <h1 className="text-3xl font-bold mb-3">{title}</h1>
+              ) : (
+                <div className="h-9 w-3/4 bg-gray-100 rounded mb-3"></div>
+              )}
+
+              {excerpt ? (
+                <p className="text-gray-600 mb-6 text-lg">{excerpt}</p>
+              ) : (
+                <div className="h-6 w-full bg-gray-100 rounded mb-6"></div>
+              )}
+
+              <div className="prose max-w-none">
+                {editor?.isEmpty ? (
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-100 rounded w-full"></div>
+                    <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+                    <div className="h-4 bg-gray-100 rounded w-4/6"></div>
+                  </div>
+                ) : (
+                  <div dangerouslySetInnerHTML={{ __html: editor?.getHTML() ?? "" }}></div>
+                )}
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500">{userName} • {formattedDate}</p>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Author and Save */}
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-2">
-          <div className="border border-blue-200 rounded-md px-3 py-1.5 text-blue-600">
-            {author}
-          </div>
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+      <div className='flex items-center justify-between mt-4'>
+        <div className='flex items-center gap-2'>
+          <Badge className="border px-3 py-1.5 bg-secondary text-foreground">{userName}</Badge>
+          <div className='w-2 h-2 bg-green-500 animate-pulse rounded-full'></div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="border-blue-200">
-            <X className="h-4 w-4 mr-1" />
-            Publier Aut.
-          </Button>
+        <div className='flex items-center gap-2'>
           <Button
             onClick={handleSave}
             className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
