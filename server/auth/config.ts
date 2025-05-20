@@ -1,7 +1,7 @@
-import { env } from "@/env";
-import { decodeJwt } from "jose";
-import type { Session, DefaultSession, NextAuthConfig } from "next-auth";
-import KeycloakProvider from "next-auth/providers/keycloak";
+import { env } from '@/env'
+import { decodeJwt } from 'jose'
+import type { Session, DefaultSession, NextAuthConfig } from 'next-auth'
+import KeycloakProvider from 'next-auth/providers/keycloak'
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -9,13 +9,13 @@ import KeycloakProvider from "next-auth/providers/keycloak";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends DefaultSession {
-    accessToken?: string;
+    accessToken?: string
     user: {
-      id: string;
-      roles: ("admin" | "user")[];
-    } & DefaultSession["user"];
+      id: string
+      roles: ('admin' | 'user')[]
+    } & DefaultSession['user']
   }
 
   // interface User {
@@ -46,36 +46,38 @@ export const authConfig = {
      */
   ],
   callbacks: {
-    jwt: ({ token }) => {
+    async jwt({ token, account, user, profile, trigger }) {
+      console.log({ token, account, user, profile, trigger })
+      
       // First login
       if (token.accessToken) {
-        const accessToken = token.accessToken as string;
+        const accessToken = token.accessToken as string
 
         // Decode the access token to extract realm_access.roles
-        const payload = decodeJwt(accessToken);
+        const payload = decodeJwt(accessToken)
 
         token.roles = (payload.realm_access as { roles: string[] })?.roles ?? [
-          "user",
-        ];
+          'user',
+        ]
       }
-      return token;
+      return token
     },
     async session({ session, token }) {
       // Pass roles to session
-      session.accessToken = token.accessToken as string;
-      session.user.roles = token.roles as Session["user"]["roles"];
-      console.log({ session });
-      return session;
+      session.accessToken = token.accessToken as string
+      session.user.roles = token.roles as Session['user']['roles']
+      console.log({ session, token })
+      return session
     },
 
     authorized(params) {
-      console.log("Authorizing...", params);
+      console.log('Authorizing...', params)
 
-      return !params.auth;
+      return !params.auth
     },
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-} satisfies NextAuthConfig;
+} satisfies NextAuthConfig

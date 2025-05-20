@@ -1,3 +1,4 @@
+'use client';
 import Preview from '@/components/previews/product/preview'
 import { apiClient } from '@/lib/api-client'
 import { useUploadFile } from '@/lib/minio/upload'
