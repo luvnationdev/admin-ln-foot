@@ -9,18 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
+import type { Advertisement } from "@/types/advertisement";
+
 interface AdvertisementEditorProps {
-  advertisement?: any;
+  advertisement?: Advertisement | null;
 }
 
 export default function AdvertisementEditor({ advertisement }: AdvertisementEditorProps) {
-  const [title, setTitle] = useState(advertisement?.title || '');
-  const [description, setDescription] = useState(advertisement?.description || '');
-  const [referenceUrl, setReferenceUrl] = useState(advertisement?.redirectUrl || '');
-  const [videoUrl, setVideoUrl] = useState(advertisement?.videoUrl || '');
+  const [title, setTitle] = useState(advertisement?.title ?? '');
+  const [description, setDescription] = useState(advertisement?.description ?? '');
+  const [referenceUrl, setReferenceUrl] = useState(advertisement?.referenceUrl ?? '');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [featuredImage, setFeaturedImage] = useState(advertisement?.imageUrl || "");
-  const [mediaType, setMediaType] = useState<'image' | 'video'>(advertisement?.mediaType || 'image');
+  const [featuredImage, setFeaturedImage] = useState(advertisement?.imageUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutate: updateAdvertisement } = trpc.advertisements.updateAdvertisement.useMutation({
@@ -37,8 +37,6 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setMediaType('image');
-      setVideoUrl('');
       setUploadFile(file);
       
       const reader = new FileReader();
@@ -57,14 +55,12 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
     let imageUrl = advertisement.imageUrl;
     if (uploadFile) {
       imageUrl = await uploadUrl();
-    }
-
-    updateAdvertisement({
+    }    updateAdvertisement({
       id: advertisement.id,
       title,
       description,
-      referenceUrl: referenceUrl,
-      imageUrl: mediaType === 'image' ? imageUrl : null,
+      referenceUrl: referenceUrl ?? undefined,
+      imageUrl: imageUrl ?? undefined,
     });
   };
 
@@ -105,67 +101,42 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Type de média</label>
-            <select
-              value={mediaType}
-              onChange={(e) => setMediaType(e.target.value as 'image' | 'video')}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="image">Image</option>
-              <option value="video">Vidéo</option>
-            </select>
-          </div>
-        </div>
-
-        {mediaType === 'image' && (
-          <div
-            className="border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {featuredImage ? (
-              <div className="relative w-full">
-                <img
-                  src={featuredImage}
-                  alt="Featured"
-                  className="w-full h-48 object-cover rounded-md"
-                />
-                <button
-                  className="absolute top-2 right-2 bg-white rounded-full p-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFeaturedImage("");
-                    setUploadFile(null);
-                  }}
-                >
-                  <X className="h-4 w-4 text-gray-500" />
-                </button>
-              </div>
-            ) : (
-              <div className="text-blue-500 text-center">
-                <span className="text-3xl">+</span>
-                <p className="mt-2 text-sm text-blue-500">Ajouter une image</p>
-              </div>
-            )}
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-          </div>
-        )}
-
-        {mediaType === 'video' && (
-          <Input
-            type="url"
-            placeholder="URL de la vidéo"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
+        <div
+          className="border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {featuredImage ? (
+            <div className="relative w-full">
+              <img
+                src={featuredImage}
+                alt="Featured"
+                className="w-full h-48 object-cover rounded-md"
+              />
+              <button
+                className="absolute top-2 right-2 bg-white rounded-full p-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFeaturedImage("");
+                  setUploadFile(null);
+                }}
+              >
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+          ) : (
+            <div className="text-blue-500 text-center">
+              <span className="text-3xl">+</span>
+              <p className="mt-2 text-sm text-blue-500">Ajouter une image</p>
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageUpload}
           />
-        )}
+        </div>
 
         <Button
           onClick={handleSave}

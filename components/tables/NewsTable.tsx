@@ -31,11 +31,10 @@ export default function NewsTable() {
   const [articleToDelete, setArticleToDelete] = useState<NewsArticle | null>(null);
   const [articleToEdit, setArticleToEdit] = useState<NewsArticle | null>(null);
   const utils = trpc.useUtils();
-
   const deleteNewsMutation = trpc.newsArticles.deleteNewsArticle.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       setArticleToDelete(null);
-      utils.newsArticles.latest.invalidate();
+      await utils.newsArticles.latest.invalidate();
     },
   });
 
@@ -102,7 +101,7 @@ export default function NewsTable() {
                     </DialogTrigger>
                     <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Modifier l'article</DialogTitle>
+                        <DialogTitle>Modifier l&apos;article</DialogTitle>
                       </DialogHeader>
                       <div className="py-4">
                         <NewsEditor article={articleToEdit} />
@@ -123,7 +122,7 @@ export default function NewsTable() {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Supprimer l'article</DialogTitle>
+                        <DialogTitle>Supprimer l&apos;article</DialogTitle>
                         <DialogDescription>
                           Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.
                         </DialogDescription>

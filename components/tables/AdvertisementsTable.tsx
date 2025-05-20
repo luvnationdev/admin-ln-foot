@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import type { Advertisement } from "@/types/advertisement";
 import {
   Table,
   TableBody,
@@ -25,16 +26,14 @@ import {
 } from "@/components/ui/dialog";
 import AdvertisementEditor from "@/components/Advertisements/AdvertisementEditor";
 
-export default function AdvertisementsTable() {
-  const { data: advertisements, isLoading } = trpc.advertisements.latest.useQuery();
-  const [adToDelete, setAdToDelete] = useState<any | null>(null);
-  const [adToEdit, setAdToEdit] = useState<any | null>(null);
+export default function AdvertisementsTable() {  const { data: advertisements, isLoading } = trpc.advertisements.latest.useQuery();
+  const [adToDelete, setAdToDelete] = useState<Advertisement | null>(null);
+  const [adToEdit, setAdToEdit] = useState<Advertisement | null>(null);
   const utils = trpc.useUtils();
-
   const deleteAdMutation = trpc.advertisements.deleteAdvertisement.useMutation({
     onSuccess: () => {
       setAdToDelete(null);
-      utils.advertisements.latest.invalidate();
+      void utils.advertisements.latest.invalidate();
     },
   });
 
