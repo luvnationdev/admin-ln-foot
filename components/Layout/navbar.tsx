@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -18,7 +18,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ isLoggedIn = false, user }: NavbarProps) {
-  const [activeTab, setActiveTab] = useState<string>("mobile");
+  const [activeTab, setActiveTab] = useState<string>();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const router = useRouter();
@@ -38,6 +38,15 @@ export default function Navbar({ isLoggedIn = false, user }: NavbarProps) {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const path = usePathname();
+  useEffect(() => {
+    if (path.includes("/dashboard/web")) {
+      setActiveTab("site-web");
+    } else if (path.includes("/dashboard/mobile")) {
+      setActiveTab("mobile");
+    }
+  }, [path]);
 
   return (
     <header className="w-full bg-white shadow-sm relative">
