@@ -22,7 +22,7 @@ export default function PublicitesForm() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const { mutate: createAdvertisement } = trpc.advertisements.createAdvertisement.useMutation()
-  const { uploadUrl } = useUploadFile(uploadFile)
+  const { uploadFile: uploadUrl } = useUploadFile(uploadFile)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

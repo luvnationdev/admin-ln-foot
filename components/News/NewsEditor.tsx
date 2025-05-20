@@ -49,7 +49,7 @@ export default function NewsEditor() {
   const { mutate: createNewsArticle } =
     trpc.newsArticles.createNewsArticle.useMutation();
 
-  const { uploadUrl } = useUploadFile(uploadFile);
+  const { uploadFile: uploadUrl } = useUploadFile(uploadFile);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

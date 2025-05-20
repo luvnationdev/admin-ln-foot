@@ -2,11 +2,8 @@
 
 import ContentTabs from "@/components/content-tabs";
 import ArticlesForm from "@/components/dashboard/mobile/articles-form";
-import EnteteForm from "@/components/dashboard/mobile/entete-form";
 import { useState } from "react";
-import ActualitesForm from "./web/actualites-form";
-import PointsFortsForm from "./web/points-forts-form";
-import PublicitesForm from "./web/publicites-form";
+import { ProductForm } from "./mobile/product-form";
 
 type Tab = {
   id: string;
@@ -23,16 +20,8 @@ export default function DashboardForm({ tabs }: MobileDashboardProps) {
   // Déterminer le titre de la section en fonction de l'onglet actif
   const getSectionTitle = () => {
     switch (contentTab) {
-      case "articles":
-        return "INSERTION DES ARTICLES";
-      case "entete":
-        return "INSERTION DE L'ENTETE";
-      case "actualites":
-        return "INSERTION DES ACTUALITES";
-      case "publicites":
-        return "INSERTION DES PUBLICITES";
-      case "points-forts":
-        return "INSERTION DES POINTS FORTS";
+      case "products":
+        return "INSERTION DES PRODUITS";
       default:
         return "INSERTION DES ARTICLES";
     }
@@ -41,16 +30,8 @@ export default function DashboardForm({ tabs }: MobileDashboardProps) {
   // Déterminer le titre du formulaire en fonction de l'onglet actif
   const getFormTitle = () => {
     switch (contentTab) {
-      case "articles":
-        return "Formulaire d'Articles";
-      case "entete":
-        return "Formulaire d'Entete";
-      case "actualites":
-        return "Formulaire d'Actualité";
-      case "publicites":
-        return "Formulaire Publicité";
-      case "points-forts":
-        return "Formulaire Point fort";
+      case "products":
+        return "Formulaire de Produits";
       default:
         return "Formulaire d'Articles";
     }
@@ -59,16 +40,8 @@ export default function DashboardForm({ tabs }: MobileDashboardProps) {
   // Afficher le formulaire approprié en fonction de l'onglet actif
   const renderForm = () => {
     switch (contentTab) {
-      case "articles":
-        return <ArticlesForm />;
-      case "entete":
-        return <EnteteForm />;
-      case "actualites":
-        return <ActualitesForm />;
-      case "publicites":
-        return <PublicitesForm />;
-      case "points-forts":
-        return <PointsFortsForm />;
+      case "products":
+        return <ProductForm />
       default:
         return <ArticlesForm />;
     }
