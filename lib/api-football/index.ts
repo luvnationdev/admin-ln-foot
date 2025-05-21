@@ -25,26 +25,15 @@ export const fetchLeagues = async () => {
 }
 
 export const fetchFixtures = async () => {
-  // const today = new Date()
+  const results = await fetch(`${env.API_SPORTS_URL}/fixtures?live=all`, {
+    headers: { 'x-apisports-key': env.API_SPORTS_KEY },
+  }).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
-  // const fromDate = new Date(today)
-  // fromDate.setDate(fromDate.getDate() - 7) // 7 days before today
-  // const from = fromDate.toISOString().split('T')[0]
-
-  // const toDate = new Date(today)
-  // toDate.setDate(toDate.getDate() + 7) // 7 days after today
-  // const to = toDate.toISOString().split('T')[0]
-
-  const results = await fetch(
-    `${env.API_SPORTS_URL}/fixtures?live=all`,
-    {
-      headers: { 'x-apisports-key': env.API_SPORTS_KEY },
-    }
-  ).then((res) => res.json() as Promise<ApiFixtureResponse>)
-
-  return results.response.filter((item) =>
+  const filterResults = results.response.filter((item) =>
     INTERESTED_LEAGUES.some(
       (l) => l.name === item.league.name && l.country === item.league.country
     )
   )
+
+  return filterResults.length ? filterResults : results.response.slice(0, 10)
 }
