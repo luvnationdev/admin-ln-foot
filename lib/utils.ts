@@ -18,8 +18,8 @@ export function calculateFinalScore(score: {
   penalty: { home: number | null; away: number | null }
 }) {
   // Start with fulltime score
-  let home = score.fulltime.home ?? 0
-  let away = score.fulltime.away ?? 0
+  let home = score.fulltime.home ?? score.halftime.home ?? 0
+  let away = score.fulltime.away ??  score.halftime.away ?? 0
 
   // If extratime is available, use that instead
   if (score.extratime.home !== null && score.extratime.away !== null) {
