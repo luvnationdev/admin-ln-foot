@@ -267,14 +267,6 @@ export default function PublicitesForm() {
           </Button>
         </div>
       </form>
-            <div className="flex justify-between items-center mb-4">
-        <Button variant="outline">
-          <a href="/dashboard/content/advertisements">
-            Voir toutes les publicités
-          </a>
-        </Button>
-      </div>
-
     </div>
   );
 }

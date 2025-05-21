@@ -164,10 +164,6 @@ export default function PointsFortsForm() {
           PUBLIER
         </button>
       </form>
-
-      <Button className="mt-10" variant="outline">
-        <a href="/dashboard/content/highlights">Voir tout les points forts </a>
-      </Button>
     </div>
   );
 }
