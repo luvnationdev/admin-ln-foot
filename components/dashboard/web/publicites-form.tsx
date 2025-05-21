@@ -17,7 +17,7 @@ export default function PublicitesForm() {
   const [description, setDescription] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFileInput, setUploadFile] = useState<File | null>(null);
   const [featuredImage, setFeaturedImage] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
@@ -27,7 +27,7 @@ export default function PublicitesForm() {
   // TRPC & upload
   const { mutate: createAdvertisement } =
     trpc.advertisements.createAdvertisement.useMutation();
-  const { uploadUrl } = useUploadFile(uploadFile);
+  const { uploadFile } = useUploadFile(uploadFileInput);
 
   // Handlers
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +71,7 @@ export default function PublicitesForm() {
       toast.error("Le titre est requis");
       return;
     }
-    if (mediaType === "image" && !uploadFile) {
+    if (mediaType === "image" && !uploadFileInput) {
       toast.error("Veuillez sélectionner une image");
       return;
     }
@@ -84,9 +84,9 @@ export default function PublicitesForm() {
 
     try {
       let finalMediaUrl = videoUrl;
-      if (mediaType === "image" && uploadFile) {
+      if (mediaType === "image" && uploadFileInput) {
         toast.loading("Upload de l'image...", { id: toastId });
-        finalMediaUrl = await uploadUrl();
+        finalMediaUrl = await uploadFile(uploadFileInput);
       }
 
       toast.loading("Enregistrement de la publicité...", { id: toastId });

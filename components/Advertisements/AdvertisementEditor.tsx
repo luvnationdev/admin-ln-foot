@@ -19,7 +19,7 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
   const [title, setTitle] = useState(advertisement?.title ?? '');
   const [description, setDescription] = useState(advertisement?.description ?? '');
   const [referenceUrl, setReferenceUrl] = useState(advertisement?.referenceUrl ?? '');
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFileInput, setUploadFile] = useState<File | null>(null);
   const [featuredImage, setFeaturedImage] = useState(advertisement?.imageUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,7 +32,7 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
     }
   });
 
-  const { uploadUrl } = useUploadFile(uploadFile);
+  const { uploadFile } = useUploadFile(uploadFileInput);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,8 +53,8 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
     if (!advertisement?.id) return;
 
     let imageUrl = advertisement.imageUrl;
-    if (uploadFile) {
-      imageUrl = await uploadUrl();
+    if (uploadFileInput) {
+      imageUrl = await uploadFile();
     }    updateAdvertisement({
       id: advertisement.id,
       title,
