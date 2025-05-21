@@ -116,15 +116,6 @@ export default function PublicitesForm() {
   // Rendu
   return (
     <div className="w-full space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Nouvelle publicité</h2>
-        <Button variant="outline">
-          <a href="/dashboard/content/advertisements">
-            Voir toutes les publicités
-          </a>
-        </Button>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Sélecteur de type média */}
         <div className="space-y-2">
@@ -276,6 +267,14 @@ export default function PublicitesForm() {
           </Button>
         </div>
       </form>
+            <div className="flex justify-between items-center mb-4">
+        <Button variant="outline">
+          <a href="/dashboard/content/advertisements">
+            Voir toutes les publicités
+          </a>
+        </Button>
+      </div>
+
     </div>
   );
 }

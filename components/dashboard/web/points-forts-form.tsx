@@ -2,39 +2,79 @@
 
 import { trpc } from "@/lib/trpc/react";
 import type React from "react";
-
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { useUploadFile } from "@/lib/minio/upload";
+import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function PointsFortsForm() {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { uploadUrl } = useUploadFile(uploadFile);
 
   const { mutate: createHighlight } =
-    trpc.highlights.createHighlight.useMutation();
+    trpc.highlights.createHighlight.useMutation({
+      onSuccess: () => {
+        toast.success("Point fort créé avec succès !");
+        // Reset form
+        setTitle("");
+        setDescription("");
+        setVideoUrl("");
+        setThumbnailUrl("");
+        setUploadFile(null);
+      },
+      onError: (error) => {
+        toast.error("Erreur lors de la création du point fort");
+        console.error(error);
+      },
+    });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createHighlight(
-      {
-        title,
-        videoUrl,
-        description: "",
-        thumbnailUrl: videoUrl,
-      },
-      {
-        onError(error) {
-          console.log(error);
-        },
-        onSuccess(data) {
-          console.log("Sucessfull: ", data);
-        },
-      },
-    );
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result) {
+          setThumbnailUrl(ev.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleVideoSelect = () => {
-    // Simuler la sélection de fichier
-    setVideoUrl("/placeholder-video.mp4");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!title || !videoUrl || !description) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    let finalThumbnailUrl = thumbnailUrl;
+    if (uploadFile) {
+      try {
+        toast.loading("Upload de la miniature...");
+        finalThumbnailUrl = await uploadUrl();
+      } catch (error) {
+        toast.error("Erreur lors de l'upload de l'image");
+        return;
+      }
+    }
+
+    createHighlight({
+      title,
+      videoUrl,
+      description,
+      thumbnailUrl: finalThumbnailUrl || videoUrl,
+    });
   };
 
   return (
@@ -55,6 +95,20 @@ export default function PointsFortsForm() {
         </div>
 
         <div className="space-y-2">
+          <label htmlFor="description" className="block text-sm font-medium">
+            Description
+          </label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md"
+            placeholder="Description du point fort"
+            rows={4}
+          />
+        </div>
+
+        <div className="space-y-2">
           <label htmlFor="video" className="block text-sm font-medium">
             Insérer vidéo
           </label>
@@ -68,12 +122,38 @@ export default function PointsFortsForm() {
             />
             <button
               type="button"
-              onClick={handleVideoSelect}
-              className="px-3 py-2 text-white bg-gray-400 rounded-r-md"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-2 text-white bg-gray-400 rounded-r-md hover:bg-gray-500"
             >
-              Sélectionner vidéo
+              Choisir une miniature
             </button>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleThumbnailSelect}
+            className="hidden"
+          />
+          {thumbnailUrl && (
+            <div className="mt-2 relative inline-block">
+              <img
+                src={thumbnailUrl}
+                alt="Miniature"
+                className="w-32 h-32 object-cover rounded-md"
+              />
+              <button
+                type="button"
+                className="absolute top-1 right-1 p-1 bg-white rounded-full shadow-sm"
+                onClick={() => {
+                  setThumbnailUrl("");
+                  setUploadFile(null);
+                }}
+              >
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+          )}
         </div>
 
         <button
@@ -83,6 +163,10 @@ export default function PointsFortsForm() {
           PUBLIER
         </button>
       </form>
+
+      <Button className="mt-10" variant="outline">
+        <a href="/dashboard/content/highlights">Voir tout les points forts </a>
+      </Button>
     </div>
   );
 }
