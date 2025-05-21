@@ -1,16 +1,18 @@
 'use client'
 
-import Preview from "@/components/previews/article/preview"
-import { Badge } from "@/components/ui/badge"
-import { CATEGORIES, SHOE_SIZES, SIZES } from "@/constants/product"
+import Preview from '@/components/previews/article/preview'
+import { Badge } from '@/components/ui/badge'
+import { CATEGORIES, SHOE_SIZES, SIZES } from '@/constants/product'
+import { apiClient } from '@/lib/api-client'
 import { useUploadFile } from '@/lib/minio/upload'
-import { trpc } from '@/lib/trpc/react'
-import { type ProductData } from "@/types/product"
-import { ChevronDown, X } from "lucide-react"
-import React, { type KeyboardEvent, useRef, useState } from "react"
-import { toast } from "sonner"
+import { type ProductData } from '@/types/product'
+import { ChevronDown, X } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import React, { type KeyboardEvent, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function ArticlesForm() {
+  const { data: session } = useSession()
   const [formData, setFormData] = useState<ProductData>({
     category: 'Catégories',
     images: [],
@@ -22,19 +24,18 @@ export default function ArticlesForm() {
     shoeSizes: [],
   })
 
-  const createArticle = trpc.ecommerceArticles.createArticle.useMutation()
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSizesOpen, setIsSizesOpen] = useState(false)
   const [isShoesSizesOpen, setIsShoesSizesOpen] = useState(false)
   const [newColor, setNewColor] = useState('')
   const [uploadFile, setUploadFile] = useState<File | null>(null)
-  
+  const [isPending, setIsPending] = useState(false)
+
   const categories = CATEGORIES
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { uploadUrl } = useUploadFile(uploadFile)
+  const { uploadFile: uploadUrl } = useUploadFile(uploadFile)
 
   const handleAddColor = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newColor.trim()) {
@@ -62,7 +63,7 @@ export default function ArticlesForm() {
     const files = e.target.files
     if (files) {
       // Prévisualiser toutes les images
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         setUploadFile(file)
         const reader = new FileReader()
         reader.onloadend = () => {
@@ -73,52 +74,86 @@ export default function ArticlesForm() {
         }
         reader.readAsDataURL(file)
       })
-      
-      toast.info("Images ajoutées avec succès !")
+
+      toast.info('Images ajoutées avec succès !')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!formData.name || !formData.price || !formData.description) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
+      toast.error('Veuillez remplir tous les champs obligatoires')
+      return
     }
-    
+
     if (formData.images.length === 0) {
-      toast.error('Veuillez ajouter au moins une image');
-      return;
+      toast.error('Veuillez ajouter au moins une image')
+      return
     }
-    
-    toast.loading('Création de l\'article en cours...');
-    
+
+    toast.loading("Création de l'article en cours...")
+
     try {
       // Uploader l'image
-      let imageUrl = '';
-      
+      let imageUrl = ''
+
       if (uploadFile) {
         try {
-          imageUrl = await uploadUrl();
+          imageUrl = await uploadUrl()
         } catch (error) {
-          console.error('Erreur lors de l\'upload de l\'image:', error);
-          toast.error('Erreur lors de l\'upload de l\'image');
-          return;
+          console.error("Erreur lors de l'upload de l'image:", error)
+          toast.error("Erreur lors de l'upload de l'image")
+          return
         }
       }
-      
-      await createArticle.mutateAsync({
-        title: formData.name,
-        summary: formData.description,
-        content: formData.description,
-        price: Number(formData.price) || 0,
-        imageUrl: imageUrl || 'https://edimosports.com/265-large_default/maillot-vert-rinel.jpg',
-        sourceUrl: '',
-        ecommerceId: undefined,
-      });
-      
-      toast.success('Article créé avec succès !');
-      
+
+      setIsPending(true)
+      // Créer le produit
+      const { data: product, error } = await apiClient.createProduct({
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+        body: {
+          categoryNames: [formData.category],
+          name: formData.name,
+          description: formData.description,
+          price: Number(formData.price) || 0,
+          imageUrl: imageUrl,
+          stockQuantity: 0,
+          sizes: formData.sizes,
+        },
+      })
+
+      if (!product || error) {
+        console.error("Erreur lors de la création de l'article:", error)
+        toast.error("Erreur lors de la création de l'article")
+        return
+      }
+
+      // Créer les produits couleurs
+      await Promise.all(
+        formData.images.map((imageUrl, i) =>
+          apiClient.createProductVariant({
+            headers: {
+              Authorization: `Bearer ${session?.accessToken}`,
+            },
+            body: {
+              imageUrl,
+              stockQuantity: 0,
+              price: Number(formData.price) || 0,
+              sizes: formData.sizes,
+              productId: product?.id,
+              colorCode: (formData.colors ?? [])[i] ?? 'default',
+            },
+          })
+        )
+      )
+
+      setIsPending(false)
+
+      toast.success('Article créé avec succès !')
+
       // Réinitialiser le formulaire
       setFormData({
         category: 'Catégories',
@@ -129,12 +164,12 @@ export default function ArticlesForm() {
         colors: [],
         sizes: [],
         shoeSizes: [],
-      });
-      setUploadFile(null);
-       /* eslint-disable @typescript-eslint/no-explicit-any */ 
+      })
+      setUploadFile(null)
+      /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (err: any) {
-      console.error('Erreur lors de la création de l\'article:', err);
-      toast.error('Erreur lors de la création de l\'article');
+      console.error("Erreur lors de la création de l'article:", err)
+      toast.error("Erreur lors de la création de l'article")
     }
   }
 
@@ -180,10 +215,9 @@ export default function ArticlesForm() {
             )}
           </div>
         </div>
-
         {/* Images - Mise à jour du composant d'upload */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Images du produit</label>
+        <div className='space-y-2'>
+          <label className='block text-sm font-medium'>Images du produit</label>
           <input
             type='file'
             ref={fileInputRef}
@@ -192,8 +226,8 @@ export default function ArticlesForm() {
             multiple
             className='hidden'
           />
-          <div 
-            className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-wrap gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
+          <div
+            className='border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-wrap gap-2 cursor-pointer hover:bg-gray-50 transition-colors'
             onClick={handleImageSelect}
           >
             {formData.images.map((img, index) => (
@@ -207,13 +241,13 @@ export default function ArticlesForm() {
                   className='w-full h-full object-cover rounded-md'
                 />
                 <button
-                  type="button"
-                  className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
+                  type='button'
+                  className='absolute -top-2 -right-2 bg-red-500 rounded-full p-1'
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setFormData(prev => ({
+                    e.stopPropagation()
+                    setFormData((prev) => ({
                       ...prev,
-                      images: prev.images.filter((_, i) => i !== index)
+                      images: prev.images.filter((_, i) => i !== index),
                     }))
                   }}
                 >
@@ -222,14 +256,13 @@ export default function ArticlesForm() {
               </div>
             ))}
             {formData.images.length === 0 && (
-              <div className="text-gray-500 w-full text-center p-6">
-                <span className="text-3xl">+</span>
-                <p className="mt-2 text-sm">Cliquez pour ajouter des images</p>
+              <div className='text-gray-500 w-full text-center p-6'>
+                <span className='text-3xl'>+</span>
+                <p className='mt-2 text-sm'>Cliquez pour ajouter des images</p>
               </div>
             )}
           </div>
         </div>
-
         {/* Champs conditionnels */}
         {showColorsField && (
           <div className='space-y-2'>
@@ -260,7 +293,6 @@ export default function ArticlesForm() {
             />
           </div>
         )}
-
         {showSizesField && (
           <div className='space-y-2'>
             <label className='block text-sm font-medium'>
@@ -305,7 +337,6 @@ export default function ArticlesForm() {
             </div>
           </div>
         )}
-
         {showShoeSizesField && (
           <div className='space-y-2'>
             <label className='block text-sm font-medium'>
@@ -351,7 +382,6 @@ export default function ArticlesForm() {
             </div>
           </div>
         )}
-
         {/* Champs de base */}
         <div className='space-y-2'>
           <label htmlFor='name' className='block text-sm font-medium'>
@@ -371,7 +401,6 @@ export default function ArticlesForm() {
             placeholder="Nom de l'article"
           />
         </div>
-
         <div className='space-y-2'>
           <label htmlFor='price' className='block text-sm font-medium'>
             Prix
@@ -390,7 +419,6 @@ export default function ArticlesForm() {
             placeholder='Prix'
           />
         </div>
-
         <div className='space-y-2'>
           <label htmlFor='description' className='block text-sm font-medium'>
             Description
@@ -406,14 +434,15 @@ export default function ArticlesForm() {
             }
             className='w-full px-3 py-2 border rounded-md'
             rows={4}
-            placeholder="Ajouter une des description"
+            placeholder='Ajouter une des description'
           ></textarea>
-        </div>        <button
-          type="submit"
-          className="w-full py-3 font-semibold text-white bg-orange-500 rounded-md hover:bg-orange-600"
-          disabled={createArticle.isPending}
+        </div>{' '}
+        <button
+          type='submit'
+          className='w-full py-3 font-semibold text-white bg-orange-500 rounded-md hover:bg-orange-600'
+          disabled={isPending}
         >
-          {createArticle.isPending ? 'PUBLICATION EN COURS...' : 'PUBLIER'}
+          {isPending ? 'PUBLICATION EN COURS...' : 'PUBLIER'}
         </button>
       </form>
 
