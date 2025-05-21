@@ -46,20 +46,17 @@ export const authConfig = {
      */
   ],
   callbacks: {
-    async jwt({ token, account, user, profile, trigger }) {
-      console.log({ token, account, user, profile, trigger })
-      
-      // First login
-      if (token.accessToken) {
-        const accessToken = token.accessToken as string
+    async jwt({ token, account }) {
+      console.log('JWT callback', { token, account })
+      if (account?.access_token) {
+        token.accessToken = account.access_token
 
-        // Decode the access token to extract realm_access.roles
-        const payload = decodeJwt(accessToken)
-
+        const payload = decodeJwt(account.access_token)
         token.roles = (payload.realm_access as { roles: string[] })?.roles ?? [
           'user',
         ]
       }
+
       return token
     },
     async session({ session, token }) {

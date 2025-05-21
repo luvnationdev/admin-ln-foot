@@ -11,7 +11,7 @@ export function useUploadFile(file?: File | null) {
         throw new Error('No file to upload')
       }
 
-      const objectName = `uploads/${Date.now()}-${file.name}`
+      const objectName = `${crypto.randomUUID()}-${file.name.replace(/ /g, '')}`
       const { objectUrl, uploadUrl } = await getPresignedUrl({
         objectName,
       })
