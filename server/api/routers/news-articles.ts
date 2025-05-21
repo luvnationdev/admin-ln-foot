@@ -3,11 +3,11 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from "@/server/api/trpc";
-import { db } from "@/server/db";
-import { newsArticles as NewsArticlesTable } from "@/server/db/schema";
-import { desc, eq } from "drizzle-orm";
-import { z } from "zod";
+} from '@/server/api/trpc'
+import { db } from '@/server/db'
+import { newsArticles as NewsArticlesTable } from '@/server/db/schema'
+import { desc, eq } from 'drizzle-orm'
+import { z } from 'zod'
 
 const zNewsArticleSchema = z.object({
   id: z.string(),
@@ -21,15 +21,15 @@ const zNewsArticleSchema = z.object({
   imageUrl: z.string().nullable(),
   sourceUrl: z.string().nullable(),
   apiArticleId: z.string().nullable(),
-});
+})
 export const newsArticleRouter = createTRPCRouter({
   latest: publicProcedure
     .output(z.array(zNewsArticleSchema))
     .query(async () => {
       const news = await db.query.newsArticles.findMany({
         orderBy: [desc(NewsArticlesTable.createdAt)],
-      });
-      return news;
+      })
+      return news
     }),
   findOne: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -37,8 +37,8 @@ export const newsArticleRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const news = await db.query.newsArticles.findFirst({
         where: eq(NewsArticlesTable.id, input.id),
-      });
-      return news;
+      })
+      return news
     }),
   createNewsArticle: adminProcedure
     .input(
@@ -50,13 +50,14 @@ export const newsArticleRouter = createTRPCRouter({
         sourceUrl: z.string(),
         apiSource: z.string().optional(),
         apiNewsId: z.string().optional(),
-      }),
+        isMajorUpdate: z.boolean().default(false).optional(),
+      })
     )
     .mutation(async ({ input }) => {
       const news = await db.insert(NewsArticlesTable).values({
         ...input,
-      });
-      return news;
+      })
+      return news
     }),
   updateNewsArticle: adminProcedure
     .input(
@@ -68,21 +69,21 @@ export const newsArticleRouter = createTRPCRouter({
         sourceUrl: z.string().optional(),
         apiSource: z.string().optional(),
         apiNewsId: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       const news = await db
         .update(NewsArticlesTable)
         .set({ ...input })
-        .where(eq(NewsArticlesTable.id, input.id));
-      return news;
+        .where(eq(NewsArticlesTable.id, input.id))
+      return news
     }),
   deleteNewsArticle: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       await db
         .delete(NewsArticlesTable)
-        .where(eq(NewsArticlesTable.id, input.id));
-      return { success: true };
+        .where(eq(NewsArticlesTable.id, input.id))
+      return { success: true }
     }),
-});
+})

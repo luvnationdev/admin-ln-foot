@@ -1,7 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { fixturesRouter } from "./routers/fixtures";
 import { newsArticleRouter } from "./routers/news-articles";
-import { ecommerceArticlesRouter } from "./routers/ecommerce-articles";
 import { highlightRouter } from "./routers/highlights";
 import { leaguesRouter } from "./routers/leagues";
 import { advertisementsRouter } from "./routers/advertisements";
@@ -17,7 +16,6 @@ import { uploadRouter } from "./routers/upload";
 export const appRouter = createTRPCRouter({
   fixtures: fixturesRouter,
   newsArticles: newsArticleRouter,
-  ecommerceArticles: ecommerceArticlesRouter,
   highlights: highlightRouter,
   leagues: leaguesRouter,
   advertisements: advertisementsRouter,
