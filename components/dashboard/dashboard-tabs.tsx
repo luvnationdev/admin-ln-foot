@@ -12,7 +12,6 @@ export function DashboardTabs() {
 
   const tabs = [
     { id: "actualites", label: "Actualités" },
-    { id: "articles", label: "Articles" },
     { id: "pointsForts", label: "Points Forts" },
     { id: "publicites", label: "Publicités" },
   ];
