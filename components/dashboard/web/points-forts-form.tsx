@@ -1,23 +1,23 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useUploadFile } from "@/lib/minio/upload";
 import { trpc } from "@/lib/trpc/react";
+import { X } from "lucide-react";
 import type React from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUploadFile } from "@/lib/minio/upload";
-import { Textarea } from "@/components/ui/textarea";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function PointsFortsForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFileInput, setUploadFile] = useState<File | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile: uploadToMinio } = useUploadFile();
-
+  
   const { mutate: createHighlight } =
     trpc.highlights.createHighlight.useMutation({
       onSuccess: () => {
@@ -58,11 +58,11 @@ export default function PointsFortsForm() {
     }
 
     let finalThumbnailUrl = thumbnailUrl;
-    if (uploadFile) {
+    if (uploadFileInput) {
       try {
         toast.loading("Upload de la miniature...");
 
-        finalThumbnailUrl = await uploadToMinio(uploadFile);
+        finalThumbnailUrl = await uploadToMinio(uploadFileInput);
 
       } catch (error) {
         toast.error("Erreur lors de l'upload de l'image : " + String(error));
