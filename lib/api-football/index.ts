@@ -25,18 +25,18 @@ export const fetchLeagues = async () => {
 }
 
 export const fetchFixtures = async () => {
-  const today = new Date()
+  // const today = new Date()
 
-  const fromDate = new Date(today)
-  fromDate.setDate(fromDate.getDate() - 7) // 7 days before today
-  const from = fromDate.toISOString().split('T')[0]
+  // const fromDate = new Date(today)
+  // fromDate.setDate(fromDate.getDate() - 7) // 7 days before today
+  // const from = fromDate.toISOString().split('T')[0]
 
-  const toDate = new Date(today)
-  toDate.setDate(toDate.getDate() + 7) // 7 days after today
-  const to = toDate.toISOString().split('T')[0]
+  // const toDate = new Date(today)
+  // toDate.setDate(toDate.getDate() + 7) // 7 days after today
+  // const to = toDate.toISOString().split('T')[0]
 
   const results = await fetch(
-    `${env.API_SPORTS_URL}/fixtures?from=${from}&to=${to}`,
+    `${env.API_SPORTS_URL}/fixtures?live=all`,
     {
       headers: { 'x-apisports-key': env.API_SPORTS_KEY },
     }
