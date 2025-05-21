@@ -49,13 +49,13 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
     }
 
     if (highlight?.id) {
-      await updateHighlightMutation.mutate({
+       updateHighlightMutation.mutate({
         id: highlight.id,
         title,
         description,
       });
     } else {
-      await createHighlightMutation.mutate({
+       createHighlightMutation.mutate({
           title,
           description,
           videoUrl: "",

@@ -16,8 +16,7 @@ export default function PointsFortsForm() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const { uploadUrl } = useUploadFile(uploadFile);
+  const { uploadFile: uploadToMinio } = useUploadFile();
 
   const { mutate: createHighlight } =
     trpc.highlights.createHighlight.useMutation({
@@ -62,9 +61,11 @@ export default function PointsFortsForm() {
     if (uploadFile) {
       try {
         toast.loading("Upload de la miniature...");
-        finalThumbnailUrl = await uploadUrl();
+
+        finalThumbnailUrl = await uploadToMinio(uploadFile);
+
       } catch (error) {
-        toast.error("Erreur lors de l'upload de l'image");
+        toast.error("Erreur lors de l'upload de l'image : " + String(error));
         return;
       }
     }

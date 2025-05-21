@@ -6,50 +6,52 @@ import type { NewsArticle } from "@/types/news";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {
-  Bold,
-  Edit2,
-  Eye,
-  ImageIcon,
-  Italic,
-  List,
-  ListOrdered,
-  X,
-} from "lucide-react";
-import { useRef, useState } from "react";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import { Edit2, Eye } from "lucide-react";
+import { useState } from "react";
 
-import { useUploadFile } from "@/lib/minio/upload";
-import { trpc } from "@/lib/trpc/react";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+
+// Custom Hooks
+import { useNewsEditorForm } from "./hooks/useNewsEditorForm";
+import { useEditorImageUpload } from "./hooks/useEditorImageUpload";
+
+// Subcomponents
+import { FeaturedImageUploader } from "./subcomponents/FeaturedImageUploader";
+import { EditorToolbar } from "./subcomponents/EditorToolbar";
+import { EditorPreview } from "./subcomponents/EditorPreview";
+import { EditorImageUploadModal } from "./subcomponents/EditorImageUploadModal";
 
 interface NewsEditorProps {
   article: NewsArticle | null;
 }
 
 export default function NewsEditor({ article }: NewsEditorProps) {
-  const [title, setTitle] = useState(article?.title ?? "");
-  const [excerpt, setExcerpt] = useState(article?.summary ?? "");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [featuredImage, setFeaturedImage] = useState(article?.imageUrl ?? "");
   const [view, setView] = useState<"edit" | "preview">("edit");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const { userName } = useCurrentUser();
 
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image,
+      Image.configure({
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'max-h-[400px] w-auto object-contain',
+        },
+      }),
       Placeholder.configure({
         placeholder: "Commencez à écrire votre contenu ici...",
+      }),
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
       }),
     ],
     content: article?.content ?? "",
@@ -61,93 +63,30 @@ export default function NewsEditor({ article }: NewsEditorProps) {
     },
   });
 
-  const { mutate: createNewsArticle } =
-    trpc.newsArticles.createNewsArticle.useMutation();
+  const {
+    title, setTitle,
+    excerpt, setExcerpt,
+    featuredImage,
+    handleFeaturedImageFileSelect,
+    removeFeaturedImage,
+    fileInputRef,
+    isSubmitting,
+    handleSave,
+    resetForm: resetNewsEditorForm,
+  } = useNewsEditorForm({ article, editor, onFormReset: () => setView("edit") });
 
-  const { uploadFile: uploadUrl } = useUploadFile(uploadFile);
+  const {
+    isImageModalOpen,
+    openEditorImageModal,
+    closeEditorImageModal,
+    editorImageFile,
+    editorImagePreview,
+    handleEditorImageFileSelect: handleModalImageSelect,
+    handleConfirmUploadAndInsertEditorImage,
+    imageInputRef: editorImageModalInputRef,
+    isUploading: isEditorImageUploading, // Assume useEditorImageUpload now returns isUploading
+  } = useEditorImageUpload(editor);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setFeaturedImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageFile = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file || !editor) return;
-
-    // 1) Aperçu immédiat en base64
-    const reader = new FileReader();
-    reader.onload = () => {
-      editor
-        .chain()
-        .focus()
-        .setImage({ src: reader.result as string })
-        .run();
-    };
-    reader.readAsDataURL(file);
-
-    // 2) (Optionnel) Upload sur MinIO et insertion de l'URL finale
-    // setUploadFile(file);
-    // try {
-    //   const imageUrl = await uploadUrl();
-    //   editor
-    //     .chain()
-    //     .focus()
-    //     .setImage({ src: imageUrl })
-    //     .run();
-    // } catch {
-    //   toast.error("Impossible de téléverser l'image");
-    // }
-
-    // Réinitialise l'input pour ré-accepter le même fichier
-    e.target.value = "";
-  };
-
-  const handleSave = () => {
-    const content = editor?.getHTML();
-    console.log({
-      title,
-      excerpt,
-      featuredImage,
-      content,
-      author: userName,
-    });
-
-    uploadUrl()
-      .then((imageUrl) => {
-        createNewsArticle(
-          {
-            title,
-            imageUrl,
-            summary: excerpt,
-            sourceUrl: "lnfoot-cameroon",
-            content: content ?? "",
-          },
-          {
-            onError(error) {
-              console.log(error);
-              toast.error("Erreur lors de la création de l'article");
-            },
-            onSuccess(data) {
-              console.log("Sucessfull: ", data);
-              toast.success("Article créé avec succès!");
-            },
-          }
-        );
-      })
-      .catch(() => toast.error("Impossible de téléverser l'image"));
-  };
 
   const formattedDate = new Date().toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -157,46 +96,13 @@ export default function NewsEditor({ article }: NewsEditorProps) {
 
   return (
     <div className="space-y-4">
-      {/* Featured Image Upload */}
-      <div
-        className="border-2 border-dashed border-blue-300 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {featuredImage ? (
-          <div className="relative w-full">
-            <img
-              src={featuredImage}
-              alt="Featured"
-              className="w-full h-48 object-cover rounded-md"
-            />
-            <button
-              className="absolute top-2 right-2 bg-white rounded-full p-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                setFeaturedImage("");
-              }}
-            >
-              <X className="h-4 w-4 text-gray-500" />
-            </button>
-          </div>
-        ) : (
-          <div className="text-blue-500 text-center">
-            <span className="text-3xl">+</span>
-            <p className="mt-2 text-sm text-blue-500">
-              Ajouter une image à la une
-            </p>
-          </div>
-        )}
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleImageUpload}
-        />
-      </div>
+      <FeaturedImageUploader
+        featuredImage={featuredImage}
+        onFileSelect={handleFeaturedImageFileSelect}
+        onRemoveImage={removeFeaturedImage}
+        fileInputRef={fileInputRef}
+      />
 
-      {/* Title */}
       <Input
         placeholder="Titre de l'article"
         value={title}
@@ -204,7 +110,6 @@ export default function NewsEditor({ article }: NewsEditorProps) {
         className="text-lg border-blue-200 focus:border-blue-500"
       />
 
-      {/* Excerpt */}
       <Textarea
         placeholder="Résumé de l'article"
         value={excerpt}
@@ -213,7 +118,6 @@ export default function NewsEditor({ article }: NewsEditorProps) {
         rows={2}
       />
 
-      {/* Tabs for Edit/Preview */}
       <Tabs
         value={view}
         onValueChange={(v) => setView(v as "edit" | "preview")}
@@ -233,130 +137,24 @@ export default function NewsEditor({ article }: NewsEditorProps) {
         </div>
 
         <TabsContent value="edit" className="mt-0">
-          {/* Rich Text Editor */}
           <div className="border border-blue-200 rounded-lg overflow-hidden">
-            <div className="flex items-center gap-1 p-2 border-b border-blue-100">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                className={cn(
-                  "p-2 h-8 w-8",
-                  editor?.isActive("bold") && "bg-blue-100"
-                )}
-              >
-                <Bold className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-                className={cn(
-                  "p-2 h-8 w-8",
-                  editor?.isActive("italic") && "bg-blue-100"
-                )}
-              >
-                <Italic className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  editor?.chain().focus().toggleBulletList().run()
-                }
-                className={cn(
-                  "p-2 h-8 w-8",
-                  editor?.isActive("bulletList") && "bg-blue-100"
-                )}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  editor?.chain().focus().toggleOrderedList().run()
-                }
-                className={cn(
-                  "p-2 h-8 w-8",
-                  editor?.isActive("orderedList") && "bg-blue-100"
-                )}
-              >
-                <ListOrdered className="h-4 w-4" />
-              </Button>
-
-              {/* Nouveau bouton d’insertion d’image */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => imageInputRef.current?.click()}
-                className="p-2 h-8 w-8"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                ref={imageInputRef}
-                className="hidden"
-                onChange={handleImageFile}
-              />
-            </div>
+            <EditorToolbar editor={editor} onOpenImageModal={openEditorImageModal} />
             <EditorContent editor={editor} className="p-4" />
           </div>
         </TabsContent>
 
         <TabsContent value="preview" className="mt-0">
-          {/* Preview */}
-          <div className="border border-blue-200 rounded-lg p-6 bg-white">
-            <div className="max-w-3xl mx-auto">
-              {featuredImage && (
-                <div className="mb-6">
-                  <img
-                    src={featuredImage || "/placeholder.svg"}
-                    alt={title || "Featured image"}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-
-              {title ? (
-                <h1 className="text-3xl font-bold mb-3">{title}</h1>
-              ) : (
-                <div className="h-9 w-3/4 bg-gray-100 rounded mb-3"></div>
-              )}
-
-              {excerpt ? (
-                <p className="text-gray-600 mb-6 text-lg">{excerpt}</p>
-              ) : (
-                <div className="h-6 w-full bg-gray-100 rounded mb-6"></div>
-              )}
-
-              <div className="prose max-w-none">
-                {editor?.isEmpty ? (
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-100 rounded w-full"></div>
-                    <div className="h-4 bg-gray-100 rounded w-5/6"></div>
-                    <div className="h-4 bg-gray-100 rounded w-4/6"></div>
-                  </div>
-                ) : (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: editor?.getHTML() ?? "" }}
-                  ></div>
-                )}
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
-                  {userName} • {formattedDate}
-                </p>
-              </div>
-            </div>
-          </div>
+          <EditorPreview
+            featuredImage={featuredImage}
+            title={title}
+            excerpt={excerpt}
+            editor={editor}
+            userName={userName}
+            formattedDate={formattedDate}
+          />
         </TabsContent>
       </Tabs>
 
-      {/* Author and Save */}
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-2">
           <Badge className="border px-3 py-1.5 bg-secondary text-foreground">
@@ -364,15 +162,25 @@ export default function NewsEditor({ article }: NewsEditorProps) {
           </Badge>
           <div className="w-2 h-2 bg-green-500 animate-pulse rounded-full"></div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleSave}
-            className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
-          >
-            Enregistrer
-          </Button>
-        </div>
+        <Button
+          onClick={handleSave}
+          disabled={isSubmitting || isEditorImageUploading}
+          className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? "Enregistrement..." : (isEditorImageUploading ? "Téléchargement image..." : "Enregistrer")}
+        </Button>
       </div>
+
+      <EditorImageUploadModal
+        isOpen={isImageModalOpen}
+        onClose={closeEditorImageModal}
+        imageFile={editorImageFile}
+        imagePreview={editorImagePreview}
+        onFileSelect={handleModalImageSelect}
+        onConfirmUpload={handleConfirmUploadAndInsertEditorImage}
+        imageInputRef={editorImageModalInputRef}
+        isUploading={isEditorImageUploading} // Pass isUploading to the modal
+      />
     </div>
   );
 }
