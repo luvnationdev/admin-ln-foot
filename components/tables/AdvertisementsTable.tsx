@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import type { Advertisement } from "@/types/advertisement";
 import {
   Table,
   TableBody,
@@ -23,18 +24,16 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { type NewsArticle } from "@/types/news";
-import NewsEditor from "@/components/News/NewsEditor";
+import AdvertisementEditor from "@/components/Advertisements/AdvertisementEditor";
 
-export default function NewsTable() {
-  const { data: newsArticles, isLoading } = trpc.newsArticles.latest.useQuery();
-  const [articleToDelete, setArticleToDelete] = useState<NewsArticle | null>(null);
-  const [articleToEdit, setArticleToEdit] = useState<NewsArticle | null>(null);
+export default function AdvertisementsTable() {  const { data: advertisements, isLoading } = trpc.advertisements.latest.useQuery();
+  const [adToDelete, setAdToDelete] = useState<Advertisement | null>(null);
+  const [adToEdit, setAdToEdit] = useState<Advertisement | null>(null);
   const utils = trpc.useUtils();
-  const deleteNewsMutation = trpc.newsArticles.deleteNewsArticle.useMutation({
-    onSuccess: async () => {
-      setArticleToDelete(null);
-      await utils.newsArticles.latest.invalidate();
+  const deleteAdMutation = trpc.advertisements.deleteAdvertisement.useMutation({
+    onSuccess: () => {
+      setAdToDelete(null);
+      void utils.advertisements.latest.invalidate();
     },
   });
 
@@ -49,43 +48,33 @@ export default function NewsTable() {
   return (
     <div className="w-full border rounded-lg overflow-hidden">
       <div className="p-4 bg-blue-50 border-b">
-        <h2 className="text-xl font-semibold text-blue-700">News</h2>
+        <h2 className="text-xl font-semibold text-blue-700">Publicités</h2>
       </div>
 
       <Table>
         <TableHeader>
-          <TableRow>            <TableHead className="w-[300px]">Titre</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Excerpt</TableHead>
+          <TableRow>
+            <TableHead className="w-[300px]">Titre</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Lien</TableHead>
             <TableHead className="text-right">Date</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {newsArticles?.length ? (
-            /* eslint-disable @typescript-eslint/no-explicit-any */
-            newsArticles.map((article: NewsArticle) => (
-              <TableRow key={article.id}>
-                <TableCell className="font-medium">
-                  {article.title ?? "No Title"}
-                </TableCell>
-                <TableCell>{article.apiSource ?? "Admin"}</TableCell>
-                <TableCell>
-                  {article.summary
-                    ? article.summary.substring(0, 100) + "..."
-                    : "No content"}
-                </TableCell>                <TableCell className="text-right">
-                  {article.publishedAt
-                    ? formatDistanceToNow(new Date(article.publishedAt), {
+          {advertisements?.length ? (
+            advertisements.map((ad) => (
+              <TableRow key={ad.id}>
+                <TableCell className="font-medium">{ad.title}</TableCell>
+                <TableCell>{ad.imageUrl ?? ad.referenceUrl}</TableCell>
+                <TableCell>{ad.referenceUrl}</TableCell>
+                <TableCell className="text-right">
+                  {ad.createdAt
+                    ? formatDistanceToNow(new Date(ad.createdAt), {
                         addSuffix: true,
                         locale: fr,
                       })
-                    : article.createdAt
-                      ? formatDistanceToNow(new Date(article.createdAt), {
-                          addSuffix: true,
-                          locale: fr,
-                        })
-                      : "-"}
+                    : "-"}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Dialog>
@@ -94,17 +83,16 @@ export default function NewsTable() {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => setArticleToEdit(article)}
+                        onClick={() => setAdToEdit(ad)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Modifier l&apos;article</DialogTitle>
-                      </DialogHeader>
-                      <div className="py-4">
-                        <NewsEditor article={articleToEdit} />
+                        <DialogTitle>Modifier la publicité</DialogTitle>
+                      </DialogHeader>                      <div className="py-4">
+                        <AdvertisementEditor advertisement={adToEdit} />
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -115,45 +103,46 @@ export default function NewsTable() {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 hover:text-red-500"
-                        onClick={() => setArticleToDelete(article)}
+                        onClick={() => setAdToDelete(ad)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Supprimer l&apos;article</DialogTitle>
+                        <DialogTitle>Supprimer la publicité</DialogTitle>
                         <DialogDescription>
-                          Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.
+                          Êtes-vous sûr de vouloir supprimer cette publicité ? Cette action est irréversible.
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-4">
                         <Button
                           variant="ghost"
-                          onClick={() => setArticleToDelete(null)}
+                          onClick={() => setAdToDelete(null)}
                         >
                           Annuler
                         </Button>
                         <Button
                           variant="destructive"
                           onClick={() => {
-                            if (articleToDelete?.id) {
-                              deleteNewsMutation.mutate({ id: articleToDelete.id });
+                            if (adToDelete?.id) {
+                              deleteAdMutation.mutate({ id: adToDelete.id });
                             }
                           }}
-                          disabled={deleteNewsMutation.isPending}
+                          disabled={deleteAdMutation.isPending}
                         >
-                          {deleteNewsMutation.isPending ? "Suppression..." : "Supprimer"}
+                          {deleteAdMutation.isPending ? "Suppression..." : "Supprimer"}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 </TableCell>
               </TableRow>
-            ))          ) : (
+            ))
+          ) : (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                Aucun article disponible
+                Aucune publicité disponible
               </TableCell>
             </TableRow>
           )}
