@@ -1,69 +1,75 @@
-"use client";
+'use client'
 
-import ContentTabs from "@/components/content-tabs";
-import ArticlesForm from "@/components/dashboard/mobile/articles-form";
-import { useState } from "react";
-import { ProductForm } from "./mobile/product-form";
+import ContentTabs from '@/components/content-tabs'
+import { useState } from 'react'
+import HeadingsForm from './mobile/heading-form'
+import { ProductForm } from './mobile/product-form'
 
 type Tab = {
-  id: string;
-  label: string;
-};
+  id: string
+  label: string
+}
 
 interface MobileDashboardProps {
-  tabs: Tab[];
+  tabs: Tab[]
 }
 
 export default function DashboardForm({ tabs }: MobileDashboardProps) {
-  const [contentTab, setContentTab] = useState(tabs[0].id);
+  const [contentTab, setContentTab] = useState(tabs[0].id)
 
   // Déterminer le titre de la section en fonction de l'onglet actif
   const getSectionTitle = () => {
     switch (contentTab) {
-      case "products":
-        return "INSERTION DES PRODUITS";
+      case 'products':
+        return 'INSERTION DES PRODUITS'
+      case 'headings':
+        return 'INSERTION DES ENTÊTES'
       default:
-        return "INSERTION DES ARTICLES";
+        return 'INSERTION DES PRODUITS'
     }
-  };
+  }
 
   // Déterminer le titre du formulaire en fonction de l'onglet actif
   const getFormTitle = () => {
     switch (contentTab) {
-      case "products":
-        return "Formulaire de Produits";
+      case 'products':
+        return 'Formulaire de Produits'
+      case 'headings':
+        return 'Formulaire de entêtes'
       default:
-        return "Formulaire d'Articles";
+        return "Formulaire de Produits"
     }
-  };
+  }
 
   // Afficher le formulaire approprié en fonction de l'onglet actif
   const renderForm = () => {
     switch (contentTab) {
-      case "products":
+      case 'products':
         return <ProductForm />
+      case 'headings':
+        return <HeadingsForm />
       default:
-        return <ArticlesForm />;
+        return <ProductForm />
     }
-  };
+  }
 
   return (
     <>
-      <div className="relative flex items-center h-full px-8">
-        <h1 className="text-2xl font-bold text-white">{getSectionTitle()}</h1>
+      <div className='relative flex items-center h-full px-8'>
+        <h1 className='text-2xl font-bold text-white'>{getSectionTitle()}</h1>
       </div>
-      <div className="max-w-6xl px-4 mx-auto my-6">
+      <div className='max-w-6xl px-4 mx-auto my-6'>
         <ContentTabs
           activeTab={contentTab}
           onTabChange={setContentTab}
           tabs={tabs}
         />
-        <h2 className="my-6 text-2xl font-bold">{getFormTitle()}</h2>
+        <h2 className='my-6 text-2xl font-bold'>{getFormTitle()}</h2>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-1">
-          <div className="p-4 border rounded-md">{renderForm()}</div>
+        <div className='grid grid-cols-1 gap-8 md:grid-cols-1'>
+          <div className='p-4 border rounded-md'>{renderForm()}</div>
         </div>
       </div>
     </>
-  );
+  )
 }

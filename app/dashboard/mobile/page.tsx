@@ -16,7 +16,12 @@ export default async function MobileDashboardPage() {
         </div>
       </div>
 
-      <DashboardForm tabs={[{ id: 'products', label: 'PRODUITS' }]} />
+      <DashboardForm
+        tabs={[
+          { id: 'products', label: 'PRODUITS' },
+          { id: 'headings', label: 'ENTETES' },
+        ]}
+      />
     </main>
   )
 }

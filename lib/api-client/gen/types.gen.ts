@@ -45,6 +45,8 @@ export type ProductVariantDto = {
 
 export type OrderDto = {
     id?: string;
+    orderDate?: string;
+    status?: string;
     orderItems?: Array<OrderItemDto>;
 };
 
@@ -53,6 +55,8 @@ export type OrderItemDto = {
     productVariantId?: string;
     quantity?: number;
     size?: string;
+    orderId?: string;
+    price?: number;
 };
 
 export type Customer = {
@@ -73,6 +77,13 @@ export type PaymentResponseDto = {
 export type CategoryDto = {
     id?: string;
     name?: string;
+};
+
+export type HeadingDto = {
+    id?: string;
+    title?: string;
+    imageUrl?: string;
+    file?: Blob | File;
 };
 
 export type DeleteSizeData = {
@@ -648,10 +659,7 @@ export type CreateProductVariantResponses = {
 export type CreateProductVariantResponse = CreateProductVariantResponses[keyof CreateProductVariantResponses];
 
 export type CreateProductVariantsData = {
-    body?: {
-        variants: Array<ProductVariantDto>;
-        files?: Array<Blob | File>;
-    };
+    body?: Array<ProductVariantDto>;
     path?: never;
     query?: never;
     url: '/api/product-variants/bulk';
@@ -697,6 +705,38 @@ export type CreateOrderResponses = {
 };
 
 export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponses];
+
+export type GetHeadingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/headings';
+};
+
+export type GetHeadingsResponses = {
+    /**
+     * OK
+     */
+    200: Array<HeadingDto>;
+};
+
+export type GetHeadingsResponse = GetHeadingsResponses[keyof GetHeadingsResponses];
+
+export type CreateHeadingData = {
+    body: HeadingDto;
+    path?: never;
+    query?: never;
+    url: '/api/headings';
+};
+
+export type CreateHeadingResponses = {
+    /**
+     * Created
+     */
+    201: HeadingDto;
+};
+
+export type CreateHeadingResponse = CreateHeadingResponses[keyof CreateHeadingResponses];
 
 export type GetAllCategoriesData = {
     body?: never;
@@ -745,6 +785,42 @@ export type GetUserOrdersResponses = {
 };
 
 export type GetUserOrdersResponse = GetUserOrdersResponses[keyof GetUserOrdersResponses];
+
+export type DeleteProduct1Data = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/headings/{id}';
+};
+
+export type DeleteProduct1Responses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteProduct1Response = DeleteProduct1Responses[keyof DeleteProduct1Responses];
+
+export type GetOrderById1Data = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/headings/{id}';
+};
+
+export type GetOrderById1Responses = {
+    /**
+     * OK
+     */
+    200: HeadingDto;
+};
+
+export type GetOrderById1Response = GetOrderById1Responses[keyof GetOrderById1Responses];
 
 export type ClientOptions = {
     baseUrl: 'https://lnfoot-api.hublots.co' | (string & {});
