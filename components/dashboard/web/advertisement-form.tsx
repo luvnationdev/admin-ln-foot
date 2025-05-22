@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function PublicitesForm() {
+export default function AdvertisementForm() {
   // États principaux
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

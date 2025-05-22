@@ -14,20 +14,8 @@ interface MobileDashboardProps {
   tabs: Tab[]
 }
 
-export default function DashboardForm({ tabs }: MobileDashboardProps) {
+export default function MobileTabs({ tabs }: MobileDashboardProps) {
   const [contentTab, setContentTab] = useState(tabs[0].id)
-
-  // Déterminer le titre de la section en fonction de l'onglet actif
-  const getSectionTitle = () => {
-    switch (contentTab) {
-      case 'products':
-        return 'INSERTION DES PRODUITS'
-      case 'headings':
-        return 'INSERTION DES ENTÊTES'
-      default:
-        return 'INSERTION DES PRODUITS'
-    }
-  }
 
   // Déterminer le titre du formulaire en fonction de l'onglet actif
   const getFormTitle = () => {
@@ -55,9 +43,6 @@ export default function DashboardForm({ tabs }: MobileDashboardProps) {
 
   return (
     <>
-      <div className='relative flex items-center h-full px-8'>
-        <h1 className='text-2xl font-bold text-white'>{getSectionTitle()}</h1>
-      </div>
       <div className='max-w-6xl px-4 mx-auto my-6'>
         <ContentTabs
           activeTab={contentTab}

@@ -47,7 +47,6 @@ export const authConfig = {
   ],
   callbacks: {
     async jwt({ token, account }) {
-      console.log('JWT callback', { token, account })
       if (account?.access_token) {
         token.accessToken = account.access_token
 
@@ -63,7 +62,6 @@ export const authConfig = {
       // Pass roles to session
       session.accessToken = token.accessToken as string
       session.user.roles = token.roles as Session['user']['roles']
-      console.log({ session, token })
       return session
     },
 

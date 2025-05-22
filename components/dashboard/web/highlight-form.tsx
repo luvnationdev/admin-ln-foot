@@ -8,7 +8,7 @@ import type React from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-export default function PointsFortsForm() {
+export default function HighlightForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
