@@ -21,6 +21,7 @@ const zNewsArticleSchema = z.object({
   imageUrl: z.string().nullable(),
   sourceUrl: z.string().nullable(),
   apiArticleId: z.string().nullable(),
+  isMajorUpdate: z.boolean().nullable(),
 })
 export const newsArticleRouter = createTRPCRouter({
   latest: publicProcedure

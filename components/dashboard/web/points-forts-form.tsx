@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useUploadFile } from "@/lib/minio/upload";
 import { trpc } from "@/lib/trpc/react";
@@ -16,9 +15,8 @@ export default function PointsFortsForm() {
   const [uploadFileInput, setUploadFile] = useState<File | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile: uploadToMinio } = useUploadFile();
   
-  const { uploadFile } = useUploadFile(uploadFileInput);
-
   const { mutate: createHighlight } =
     trpc.highlights.createHighlight.useMutation({
       onSuccess: () => {
@@ -62,10 +60,11 @@ export default function PointsFortsForm() {
     if (uploadFileInput) {
       try {
         toast.loading("Upload de la miniature...");
-        finalThumbnailUrl = await uploadFile();
+
+        finalThumbnailUrl = await uploadToMinio(uploadFileInput);
+
       } catch (error) {
-        console.error("Error uploading thumbnail:", error);
-        toast.error("Erreur lors de l'upload de l'image");
+        toast.error("Erreur lors de l'upload de l'image : " + String(error));
         return;
       }
     }
@@ -164,10 +163,6 @@ export default function PointsFortsForm() {
           PUBLIER
         </button>
       </form>
-
-      <Button className="mt-10" variant="outline">
-        <a href="/dashboard/content/highlights">Voir tout les points forts </a>
-      </Button>
     </div>
   );
 }

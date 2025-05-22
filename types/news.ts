@@ -10,4 +10,5 @@ export interface NewsArticle {
   apiArticleId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+  isMajorUpdate: boolean | null;
 }

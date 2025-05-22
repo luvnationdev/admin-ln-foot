@@ -64,7 +64,7 @@ export default function NewsTable() {
         <TableBody>
           {newsArticles?.length ? (
             /* eslint-disable @typescript-eslint/no-explicit-any */
-            newsArticles.map((article: NewsArticle) => (
+            newsArticles.map((article) => (
               <TableRow key={article.id}>
                 <TableCell className="font-medium">
                   {article.title ?? "No Title"}

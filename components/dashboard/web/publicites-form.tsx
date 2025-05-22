@@ -119,7 +119,6 @@ export default function PublicitesForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Sélecteur de type média */}
         <div className="space-y-2">
-          <h3 className="text-lg font-medium">Média de la publicité</h3>
           <div className="flex space-x-4 mb-2">
             <button
               type="button"
@@ -267,14 +266,6 @@ export default function PublicitesForm() {
           </Button>
         </div>
       </form>
-            <div className="flex justify-between items-center mb-4">
-        <Button variant="outline">
-          <a href="/dashboard/content/advertisements">
-            Voir toutes les publicités
-          </a>
-        </Button>
-      </div>
-
     </div>
   );
 }
