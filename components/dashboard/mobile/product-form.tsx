@@ -70,6 +70,7 @@ export const ProductForm = () => {
     resolver: zodResolver(productSchema),
     defaultValues: selectedProduct ?? {
       name: '',
+      description: '',
       price: 0,
       stockQuantity: 0,
       categoryNames: [],
@@ -309,6 +310,14 @@ export const ProductForm = () => {
                 <label className='block text-sm font-medium'>Nom</label>
                 <input
                   {...register('name')}
+                  className='w-full border rounded-md p-2'
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium'>Description</label>
+                <input
+                  {...register('description')}
                   className='w-full border rounded-md p-2'
                 />
               </div>

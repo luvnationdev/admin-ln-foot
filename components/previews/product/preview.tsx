@@ -21,6 +21,7 @@ export default function Preview({ data }: PreviewProps) {
     const imageFileList = selectedVariant?.imageFile ?? []
     const selection = {
       product: data.name,
+      description: data.description,
       price: selectedVariant?.price ?? data.price,
       image: imageFileList[0]?.name ?? imageFileList[0]?.name,
       selectedSize,
