@@ -15,7 +15,10 @@ export const fetchLeagues = async () => {
     fetch(
       `${env.API_SPORTS_URL}/leagues?country=${encodeURIComponent(country)}`,
       {
-        headers: { 'x-apisports-key': process.env.API_FOOTBALL_KEY! },
+        headers: {
+          'X-RapidAPI-Key': env.API_SPORTS_KEY,
+          'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+        },
       }
     ).then((res) => res.json() as Promise<ApiLeagueResponse>)
   )
@@ -33,7 +36,10 @@ export const fetchFixtures = async (params: FixtureQueryParams) => {
   const results = await fetch(
     `${env.API_SPORTS_URL}/fixtures?${toQueryParams(params)}`,
     {
-      headers: { 'x-apisports-key': env.API_SPORTS_KEY },
+      headers: {
+        'X-RapidAPI-Key': env.API_SPORTS_KEY,
+        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+      },
     }
   ).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
