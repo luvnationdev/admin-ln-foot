@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "yarn db:migrate && next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "yarn db:migrate && next start",
     "lint": "next lint",
     "check": "next lint && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
