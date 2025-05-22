@@ -12,7 +12,12 @@ import { calculateFinalScore } from '@/lib/utils'
 export const syncRouter = createTRPCRouter({
   syncData: ghActionProcedure.mutation(async () => {
     const apiSource = 'apisports'
-    const fixtures = await fetchFixtures()
+    let fixtures = await fetchFixtures({ live: 'all' })
+    if (!fixtures.length) {
+      fixtures = await fetchFixtures({
+        last: 100,
+      })
+    }
 
     await db.transaction(async (tx) => {
       // Clear the fixtures table before inserting/updating

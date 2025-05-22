@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import type { FixtureQueryParams } from './api-football/type'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -19,7 +20,7 @@ export function calculateFinalScore(score: {
 }) {
   // Start with fulltime score
   let home = score.fulltime.home ?? score.halftime.home ?? 0
-  let away = score.fulltime.away ??  score.halftime.away ?? 0
+  let away = score.fulltime.away ?? score.halftime.away ?? 0
 
   // If extratime is available, use that instead
   if (score.extratime.home !== null && score.extratime.away !== null) {
@@ -41,4 +42,16 @@ export function calculateFinalScore(score: {
     away,
     winner,
   }
+}
+
+export function toQueryParams(params: FixtureQueryParams): string {
+  const query = new URLSearchParams()
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      query.append(key, String(value))
+    }
+  })
+
+  return query.toString()
 }

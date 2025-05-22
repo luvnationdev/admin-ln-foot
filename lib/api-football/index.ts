@@ -1,7 +1,12 @@
 import { env } from '@/env'
-import type { ApiFixtureResponse, ApiLeagueResponse } from './type'
+import type {
+  ApiFixtureResponse,
+  ApiLeagueResponse,
+  FixtureQueryParams,
+} from './type'
 
 import { INTERESTED_LEAGUES } from './constants'
+import { toQueryParams } from '../utils'
 
 const uniqueCountries = [...new Set(INTERESTED_LEAGUES.map((l) => l.country))]
 
@@ -24,10 +29,13 @@ export const fetchLeagues = async () => {
   )
 }
 
-export const fetchFixtures = async () => {
-  const results = await fetch(`${env.API_SPORTS_URL}/fixtures?live=all`, {
-    headers: { 'x-apisports-key': env.API_SPORTS_KEY },
-  }).then((res) => res.json() as Promise<ApiFixtureResponse>)
+export const fetchFixtures = async (params: FixtureQueryParams) => {
+  const results = await fetch(
+    `${env.API_SPORTS_URL}/fixtures?${toQueryParams(params)}`,
+    {
+      headers: { 'x-apisports-key': env.API_SPORTS_KEY },
+    }
+  ).then((res) => res.json() as Promise<ApiFixtureResponse>)
 
   const filterResults = results.response.filter((item) =>
     INTERESTED_LEAGUES.some(
