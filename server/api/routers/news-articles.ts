@@ -66,10 +66,12 @@ export const newsArticleRouter = createTRPCRouter({
         id: z.string(),
         title: z.string().optional(),
         content: z.string().optional(),
+        summary: z.string().optional(),
         imageUrl: z.string().optional(),
         sourceUrl: z.string().optional(),
         apiSource: z.string().optional(),
         apiNewsId: z.string().optional(),
+        isMajorUpdate: z.boolean().default(false).optional(),
       })
     )
     .mutation(async ({ input }) => {

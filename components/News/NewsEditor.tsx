@@ -61,6 +61,7 @@ export default function NewsEditor({ article }: NewsEditorProps) {
           'prose prose-blue max-w-none focus:outline-none min-h-[200px] py-4',
       },
     },
+    immediatelyRender: false,
   })
 
   const {

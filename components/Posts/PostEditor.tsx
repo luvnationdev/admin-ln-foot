@@ -42,6 +42,7 @@ export default function PostEditor() {
           "prose prose-blue max-w-none focus:outline-none min-h-[200px] py-4",
       },
     },
+    immediatelyRender: false,
   });
 
   const { mutate: createNewsArticle } =
