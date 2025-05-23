@@ -1,15 +1,17 @@
 'use client'
 import Preview from '@/components/previews/product/preview'
+import { ProductsTable } from '@/components/tables/ProductsTable'
 import { apiClient } from '@/lib/api-client'
 import { useUploadFile } from '@/lib/minio/upload'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 export const productSchema = z.object({
+  id: z.string().optional(),
   imageFile: z
     .custom<FileList>(
       (val) => {
@@ -30,6 +32,7 @@ export const productSchema = z.object({
   sizes: z.array(z.string()),
   variants: z.array(
     z.object({
+      id: z.string().optional(),
       imageFile: z
         .custom<FileList>(
           (val) => {
@@ -55,9 +58,6 @@ export type ProductFormValues = z.infer<typeof productSchema>
 export const ProductForm = () => {
   const { data: session } = useSession()
   const [showForm, setShowForm] = useState(false)
-  const [selectedProduct, setSelectedProduct] =
-    useState<ProductFormValues | null>(null)
-  const [products, setProducts] = useState<ProductFormValues[]>([])
 
   const {
     register,
@@ -68,7 +68,7 @@ export const ProductForm = () => {
     formState: { isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: selectedProduct ?? {
+    defaultValues: {
       name: '',
       description: '',
       price: 0,
@@ -117,6 +117,10 @@ export const ProductForm = () => {
         return
       }
 
+      if (!values.variants?.length) {
+        return
+      }
+
       const variantsPayload = await Promise.all(
         values.variants.map(async (v) => ({
           imageUrl: await uploadFile((v.imageFile ?? [])[0]),
@@ -148,64 +152,6 @@ export const ProductForm = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const [
-        { data: products, error },
-        { data: productVariants, error: secondError },
-      ] = await Promise.all([
-        apiClient.getAllProducts({
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        }),
-        apiClient.getProductVariants({
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        }),
-      ])
-      if (!products || error || !productVariants || secondError) {
-        toast.error('Erreur lors de la récupération des produits')
-        console.error('Erreur lors de la récupération des produits:', error)
-        return
-      }
-
-      setProducts(
-        products.map((product) => ({
-          id: product.id,
-          name: product.name ?? '',
-          description: product.description ?? '',
-          price: product.price ?? 0,
-          stockQuantity: product.stockQuantity ?? 0,
-          categoryNames: product.categoryNames ?? [],
-          sizes: product.sizes ?? [],
-          imageFile: undefined,
-          imageUrl: product.imageUrl,
-          variants: productVariants
-            .filter((variant) => variant.productId === product.id)
-            .map((variant) => ({
-              colorCode: variant.colorCode ?? '',
-              price: variant.price ?? 0,
-              stockQuantity: variant.stockQuantity ?? 0,
-              sizes: variant.sizes ?? [],
-              id: variant.id ?? '',
-              imageUrl: variant.imageUrl,
-              imageFile: undefined, // Assuming you want to keep this undefined
-            })),
-        }))
-      )
-    }
-
-    fetchProducts().catch((error) => {
-      console.error('Erreur lors de la récupération des produits:', error)
-      toast.error('Erreur lors de la récupération des produits:')
-    })
-    return () => {
-      setProducts([])
-    }
-  }, [session?.accessToken])
-
   const formData = watch()
 
   return (
@@ -215,71 +161,14 @@ export const ProductForm = () => {
           <div className='flex justify-between items-center mb-4'>
             <h2 className='text-xl font-semibold'>Liste des Produits</h2>
             <button
-              onClick={() => {
-                setSelectedProduct(null) // Creating a new product
-                setShowForm(true)
-              }}
+              onClick={() => setShowForm(true)}
               className='px-4 py-2 bg-primary text-white rounded hover:bg-primary/90'
             >
               + Ajouter un produit
             </button>
           </div>
 
-          <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-            {products.map((product, index) => (
-              <div
-                key={index}
-                className='border rounded-lg p-4 hover:shadow cursor-pointer relative'
-              >
-                <img
-                  src={product.imageUrl ?? '/placeholder.jpg'}
-                  alt={product.name}
-                  className='w-full h-32 object-cover rounded'
-                />
-                <h4 className='mt-2 font-semibold text-sm'>{product.name}</h4>
-                <p className='text-sm text-gray-600'>{product.price} FCFA</p>
-
-                {/* Categories */}
-                <div className='mt-1 text-xs text-gray-500'>
-                  Catégories: {product.categoryNames.join(', ')}
-                </div>
-
-                {/* Sizes */}
-                {product.sizes.length > 0 && (
-                  <div className='mt-1 text-xs text-gray-500'>
-                    Tailles: {product.sizes.join(', ')}
-                  </div>
-                )}
-
-                {/* Variant Colors */}
-                {product.variants.length > 0 && (
-                  <div className='mt-1 text-xs text-gray-500'>
-                    Couleurs:
-                    <div className='flex flex-wrap mt-1 gap-1'>
-                      {product.variants.map((variant, vIdx) => (
-                        <div
-                          key={vIdx}
-                          className='w-4 h-4 rounded-full border'
-                          style={{ backgroundColor: variant.colorCode }}
-                          title={variant.colorCode}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* <button
-                  onClick={() => {
-                    setSelectedProduct(product) // Editing
-                    setShowForm(true)
-                  }}
-                  className='text-sm text-blue-600 mt-2 underline'
-                >
-                  Modifier
-                </button> */}
-              </div>
-            ))}
-          </div>
+          <ProductsTable />
         </div>
       )}
       {showForm && (
