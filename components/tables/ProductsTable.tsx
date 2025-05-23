@@ -17,7 +17,6 @@ export function ProductsTable() {
       return
     }
 
-    
     await Promise.all(
       product.variants.map((variant) =>
         apiClient.deleteProductVariant({
@@ -43,16 +42,8 @@ export function ProductsTable() {
         { data: products, error },
         { data: productVariants, error: secondError },
       ] = await Promise.all([
-        apiClient.getAllProducts({
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        }),
-        apiClient.getProductVariants({
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        }),
+        apiClient.getAllProducts(),
+        apiClient.getProductVariants(),
       ])
       if (!products || error || !productVariants || secondError) {
         toast.error('Erreur lors de la récupération des produits')
