@@ -49,5 +49,9 @@ export const fetchFixtures = async (params: FixtureQueryParams) => {
     )
   )
 
+  console.log(
+    `Fetched ${results.response.length} fixtures, filtered to ${filterResults.length} for interested leagues`
+  )
+
   return filterResults.length ? filterResults : results.response.slice(0, 10)
 }
