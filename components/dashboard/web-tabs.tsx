@@ -73,7 +73,7 @@ export function WebTabs({ tabs }: MobileDashboardProps) {
       <div className='flex items-center justify-between my-6'>
         <h2 className='text-2xl font-bold'>{getFormTitle()}</h2>
         <Button variant='outline' onClick={() => setShowTable(!showTable)}>
-          {showTable ? 'Show form' : 'Voir toutes les actualités'}
+          {showTable ? 'Afficher formulaire' : 'Voir toutes les actualités'}
         </Button>
       </div>
       {showTable ? renderTable() : renderForm()}
