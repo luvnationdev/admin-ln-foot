@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { ProductFormValues } from '../dashboard/mobile/product-form'
 
-export function ProductsTable() {
+export function ProductsList() {
   const { data: session } = useSession()
   const [products, setProducts] = useState<ProductFormValues[]>([])
 

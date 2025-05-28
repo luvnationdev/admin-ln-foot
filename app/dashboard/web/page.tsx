@@ -1,8 +1,7 @@
+import DashboardTabs from '@/components/dashboard/dashboard-tabs'
 import { auth } from '@/server/auth'
 import { redirect } from 'next/navigation'
-import { WebTabs } from '@/components/dashboard/web-tabs'
 
-// Server component
 export default async function WebDashboardPage() {
   const session = await auth()
   if (!session) {
@@ -12,7 +11,8 @@ export default async function WebDashboardPage() {
   return (
     <main className='min-h-screen bg-white'>
       <div className='max-w-6xl px-4 mx-auto my-6'>
-        <WebTabs
+        <DashboardTabs
+          variant='web'
           tabs={[
             { id: 'news', label: 'Actualités' },
             { id: 'highlights', label: 'Points Forts' },

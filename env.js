@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs'
+import { z } from 'zod'
 
 export const env = createEnv({
   /**
@@ -8,14 +8,14 @@ export const env = createEnv({
    */
   server: {
     AUTH_SECRET:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === 'production'
         ? z.string()
         : z.string().optional(),
     DATABASE_URL: z.string().url(),
-    DATABASE_SCHEMA: z.string().default("landing"),
+    DATABASE_SCHEMA: z.string().default('landing'),
     NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     KEYCLOAK_CLIENT_ID: z.string(),
     KEYCLOAK_ISSUER: z.string(),
     API_SPORTS_KEY: z.string(),
@@ -23,6 +23,10 @@ export const env = createEnv({
     MINIO_ENDPOINT: z.string(),
     MINIO_ACCESS_KEY: z.string(),
     MINIO_SECRET_KEY: z.string(),
+    KC_ADMIN_USERNAME: z.string(),
+    KC_ADMIN_PASSWORD: z.string(),
+    KC_ADMIN_URL: z.string(),
+    KC_REALM_NAME: z.string().default('lnfoot'),
   },
 
   /**
@@ -45,6 +49,10 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     KEYCLOAK_CLIENT_ID: process.env.KEYCLOAK_CLIENT_ID,
     KEYCLOAK_ISSUER: process.env.KEYCLOAK_ISSUER,
+    KC_ADMIN_USERNAME: process.env.KC_ADMIN_USERNAME,
+    KC_ADMIN_PASSWORD: process.env.KC_ADMIN_PASSWORD,
+    KC_ADMIN_URL: process.env.KC_ADMIN_URL,
+    KC_REALM_NAME: process.env.KC_REALM_NAME,
     API_SPORTS_KEY: process.env.API_SPORTS_KEY,
     API_SPORTS_URL: process.env.API_SPORTS_URL,
     MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
@@ -61,4 +69,4 @@ export const env = createEnv({
    * `SOME_VAR=''` will throw an error.
    */
   emptyStringAsUndefined: true,
-});
+})
