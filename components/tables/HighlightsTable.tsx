@@ -85,7 +85,7 @@ export default function HighlightsTable() {
             </TableRow>
           </TableHeader>        <TableBody>
           {highlights?.length ? (
-            highlights.map((highlight, index) => (
+            highlights.map((highlight) => (
               <TableRow 
                 key={highlight.id} 
                 className='hover:bg-gray-50/50 transition-colors duration-200 border-b border-gray-100 group'
@@ -102,7 +102,7 @@ export default function HighlightsTable() {
                 </TableCell>
                 <TableCell className='py-4 max-w-[400px]'>
                   <p className='text-gray-600 text-sm line-clamp-3 leading-relaxed'>
-                    {highlight.description || 'Aucune description disponible'}
+                    {highlight.description ?? 'Aucune description disponible'}
                   </p>
                 </TableCell>
                 <TableCell className='text-right py-4'>

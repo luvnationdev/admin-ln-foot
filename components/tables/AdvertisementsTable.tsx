@@ -107,7 +107,7 @@ export default function AdvertisementsTable() {  const { data: advertisements, i
                 </TableCell>
                 <TableCell className='py-4 max-w-[300px]'>
                   <p className='text-gray-600 text-sm line-clamp-3 leading-relaxed'>
-                    {ad.description || 'Aucune description disponible'}
+                    {ad.description ?? 'Aucune description disponible'}
                   </p>
                 </TableCell>
                 <TableCell className='py-4'>
