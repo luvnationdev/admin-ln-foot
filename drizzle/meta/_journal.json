@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745446547092,
-      "tag": "0000_perfect_firestar",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746539306287,
-      "tag": "0001_steady_tony_stark",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747867855429,
-      "tag": "0002_fancy_carnage",
+      "when": 1748518848381,
+      "tag": "0000_lonely_moondragon",
       "breakpoints": true
     }
   ]

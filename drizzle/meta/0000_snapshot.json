@@ -1,11 +1,95 @@
 {
-  "id": "eae15d29-381e-4541-9e52-35b96e5b569d",
+  "id": "25258196-2c08-4588-abd5-6f5981d2fce8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.lnfoot_ecommerce_articles": {
-      "name": "lnfoot_ecommerce_articles",
+    "public.web_account": {
+      "name": "web_account",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_account_id": {
+          "name": "provider_account_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_type": {
+          "name": "token_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_state": {
+          "name": "session_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "web_account_provider_provider_account_id_pk": {
+          "name": "web_account_provider_provider_account_id_pk",
+          "columns": [
+            "provider",
+            "provider_account_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.web_fixtures": {
+      "name": "web_fixtures",
       "schema": "",
       "columns": {
         "id": {
@@ -15,53 +99,61 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "title": {
-          "name": "title",
-          "type": "text",
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "content": {
-          "name": "content",
-          "type": "text",
+        "team1_id": {
+          "name": "team1_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "summary": {
-          "name": "summary",
-          "type": "text",
+        "team2_id": {
+          "name": "team2_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "price": {
-          "name": "price",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image_url": {
-          "name": "image_url",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source_url": {
-          "name": "source_url",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ecommerce_id": {
-          "name": "ecommerce_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "published_at": {
-          "name": "published_at",
+        "match_datetime": {
+          "name": "match_datetime",
           "type": "timestamp with time zone",
           "primaryKey": false,
+          "notNull": true
+        },
+        "api_source": {
+          "name": "api_source",
+          "type": "varchar(50)",
+          "primaryKey": false,
           "notNull": false
+        },
+        "api_fixture_id": {
+          "name": "api_fixture_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "score1": {
+          "name": "score1",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "score2": {
+          "name": "score2",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
@@ -78,12 +170,52 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "web_fixtures_league_id_web_leagues_id_fk": {
+          "name": "web_fixtures_league_id_web_leagues_id_fk",
+          "tableFrom": "web_fixtures",
+          "tableTo": "web_leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "web_fixtures_team1_id_web_teams_id_fk": {
+          "name": "web_fixtures_team1_id_web_teams_id_fk",
+          "tableFrom": "web_fixtures",
+          "tableTo": "web_teams",
+          "columnsFrom": [
+            "team1_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "web_fixtures_team2_id_web_teams_id_fk": {
+          "name": "web_fixtures_team2_id_web_teams_id_fk",
+          "tableFrom": "web_fixtures",
+          "tableTo": "web_teams",
+          "columnsFrom": [
+            "team2_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.lnfoot_highlights": {
-      "name": "lnfoot_highlights",
+    "public.web_highlights": {
+      "name": "web_highlights",
       "schema": "",
       "columns": {
         "id": {
@@ -157,10 +289,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "lnfoot_highlights_match_id_lnfoot_matchs_id_fk": {
-          "name": "lnfoot_highlights_match_id_lnfoot_matchs_id_fk",
-          "tableFrom": "lnfoot_highlights",
-          "tableTo": "lnfoot_matchs",
+        "web_highlights_match_id_web_fixtures_id_fk": {
+          "name": "web_highlights_match_id_web_fixtures_id_fk",
+          "tableFrom": "web_highlights",
+          "tableTo": "web_fixtures",
           "columnsFrom": [
             "match_id"
           ],
@@ -174,8 +306,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.lnfoot_leagues": {
-      "name": "lnfoot_leagues",
+    "public.web_leagues": {
+      "name": "web_leagues",
       "schema": "",
       "columns": {
         "id": {
@@ -243,10 +375,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "lnfoot_leagues_sport_id_lnfoot_sport_id_fk": {
-          "name": "lnfoot_leagues_sport_id_lnfoot_sport_id_fk",
-          "tableFrom": "lnfoot_leagues",
-          "tableTo": "lnfoot_sport",
+        "web_leagues_sport_id_web_sport_id_fk": {
+          "name": "web_leagues_sport_id_web_sport_id_fk",
+          "tableFrom": "web_leagues",
+          "tableTo": "web_sport",
           "columnsFrom": [
             "sport_id"
           ],
@@ -260,134 +392,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.lnfoot_matchs": {
-      "name": "lnfoot_matchs",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "league_id": {
-          "name": "league_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "team1_id": {
-          "name": "team1_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "team2_id": {
-          "name": "team2_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "match_datetime": {
-          "name": "match_datetime",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "api_source": {
-          "name": "api_source",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "api_match_id": {
-          "name": "api_match_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "score1": {
-          "name": "score1",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "score2": {
-          "name": "score2",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "lnfoot_matchs_league_id_lnfoot_leagues_id_fk": {
-          "name": "lnfoot_matchs_league_id_lnfoot_leagues_id_fk",
-          "tableFrom": "lnfoot_matchs",
-          "tableTo": "lnfoot_leagues",
-          "columnsFrom": [
-            "league_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "lnfoot_matchs_team1_id_lnfoot_teams_id_fk": {
-          "name": "lnfoot_matchs_team1_id_lnfoot_teams_id_fk",
-          "tableFrom": "lnfoot_matchs",
-          "tableTo": "lnfoot_teams",
-          "columnsFrom": [
-            "team1_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "lnfoot_matchs_team2_id_lnfoot_teams_id_fk": {
-          "name": "lnfoot_matchs_team2_id_lnfoot_teams_id_fk",
-          "tableFrom": "lnfoot_matchs",
-          "tableTo": "lnfoot_teams",
-          "columnsFrom": [
-            "team2_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.lnfoot_news_articles": {
-      "name": "lnfoot_news_articles",
+    "public.web_news_articles": {
+      "name": "web_news_articles",
       "schema": "",
       "columns": {
         "id": {
@@ -445,6 +451,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "is_major_update": {
+          "name": "is_major_update",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -464,8 +477,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.lnfoot_publicities": {
-      "name": "lnfoot_publicities",
+    "public.web_publicities": {
+      "name": "web_publicities",
       "schema": "",
       "columns": {
         "id": {
@@ -518,8 +531,36 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.lnfoot_sport": {
-      "name": "lnfoot_sport",
+    "public.web_session": {
+      "name": "web_session",
+      "schema": "",
+      "columns": {
+        "session_token": {
+          "name": "session_token",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.web_sport": {
+      "name": "web_sport",
       "schema": "",
       "columns": {
         "id": {
@@ -553,8 +594,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "lnfoot_sport_sport_name_unique": {
-          "name": "lnfoot_sport_sport_name_unique",
+        "web_sport_sport_name_unique": {
+          "name": "web_sport_sport_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "sport_name"
@@ -562,8 +603,8 @@
         }
       }
     },
-    "public.lnfoot_teams": {
-      "name": "lnfoot_teams",
+    "public.web_teams": {
+      "name": "web_teams",
       "schema": "",
       "columns": {
         "id": {
@@ -619,10 +660,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "lnfoot_teams_league_id_lnfoot_leagues_id_fk": {
-          "name": "lnfoot_teams_league_id_lnfoot_leagues_id_fk",
-          "tableFrom": "lnfoot_teams",
-          "tableTo": "lnfoot_leagues",
+        "web_teams_league_id_web_leagues_id_fk": {
+          "name": "web_teams_league_id_web_leagues_id_fk",
+          "tableFrom": "web_teams",
+          "tableTo": "web_leagues",
           "columnsFrom": [
             "league_id"
           ],
@@ -634,6 +675,82 @@
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.web_user": {
+      "name": "web_user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.web_verification_token": {
+      "name": "web_verification_token",
+      "schema": "",
+      "columns": {
+        "identifier": {
+          "name": "identifier",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "web_verification_token_identifier_token_pk": {
+          "name": "web_verification_token_identifier_token_pk",
+          "columns": [
+            "identifier",
+            "token"
+          ]
+        }
+      },
       "uniqueConstraints": {}
     }
   },

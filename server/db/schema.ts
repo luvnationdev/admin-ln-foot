@@ -6,7 +6,8 @@ import {
   text,
   timestamp,
   uuid,
-  varchar
+  varchar,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 
 /**
@@ -15,7 +16,55 @@ import {
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `lnfoot_${name}`)
+export const createTable = pgTableCreator((name) => `web_${name}`)
+
+export const users = createTable('user', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  name: text('name'),
+  email: varchar('email', { length: 255 }).notNull(),
+  emailVerified: timestamp('email_verified', { mode: 'date' }),
+  image: text('image'),
+})
+
+export const accounts = createTable(
+  'account',
+  {
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    type: varchar('type', { length: 255 }).notNull(),
+    provider: varchar('provider', { length: 255 }).notNull(),
+    providerAccountId: varchar('provider_account_id', {
+      length: 255,
+    }).notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: text('token_type'),
+    scope: text('scope'),
+    id_token: text('id_token'),
+    session_state: text('session_state'),
+  },
+  (account) => ({
+    pk: primaryKey({ columns: [account.provider, account.providerAccountId] }),
+  })
+)
+
+export const sessions = createTable('session', {
+  sessionToken: varchar('session_token', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+})
+
+export const verificationTokens = createTable(
+  'verification_token',
+  {
+    identifier: varchar('identifier', { length: 255 }).notNull(),
+    token: varchar('token', { length: 255 }).notNull(),
+    expires: timestamp('expires', { mode: 'date' }).notNull(),
+  },
+  (vt) => ({
+    pk: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+)
 
 // New Sports Table
 export const sports = createTable('sport', {

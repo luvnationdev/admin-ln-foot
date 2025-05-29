@@ -124,29 +124,16 @@ export const publicProcedure = t.procedure.use(timingMiddleware)
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure
-  .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session || !ctx.session.user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' })
-    }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
-    })
-  })
-
 export const adminProcedure = t.procedure
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' })
     }
-    if (ctx.session.user.roles.includes('admin')) {
+    if (!ctx.session.user.roles.includes('admin')) {
       throw new TRPCError({ code: 'FORBIDDEN' })
     }
+
     return next({
       ctx: {
         session: { ...ctx.session, user: ctx.session.user },

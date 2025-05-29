@@ -1,8 +1,7 @@
 import {
   adminProcedure,
   createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
+  publicProcedure
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
@@ -38,7 +37,7 @@ export const fixturesRouter = createTRPCRouter({
   latest: publicProcedure.output(z.array(zFixtureSchema)).query(async () => {
     const leagues = await db.query.leagues.findMany({
       orderBy: [desc(LeaguesTable.createdAt)],
-    });
+    })
     const fixtures = await selectFixtures()
 
     const { f: otherFixtures, l: localFixtures } = fixtures.reduce<{
@@ -72,7 +71,7 @@ export const fixturesRouter = createTRPCRouter({
     return [...localFixtures, ...otherFixtures]
   }),
 
-  findOne: protectedProcedure
+  findOne: publicProcedure
     .input(z.object({ id: z.string() }))
     .output(zFixtureSchema.nullable())
     .query(async ({ input }) => {

@@ -1,8 +1,7 @@
 import {
   adminProcedure,
   createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
+  publicProcedure
 } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import { newsArticles as NewsArticlesTable } from '@/server/db/schema'
@@ -32,7 +31,7 @@ export const newsArticleRouter = createTRPCRouter({
       })
       return news
     }),
-  findOne: protectedProcedure
+  findOne: publicProcedure
     .input(z.object({ id: z.string() }))
     .output(zNewsArticleSchema.optional())
     .query(async ({ input }) => {
