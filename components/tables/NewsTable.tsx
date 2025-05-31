@@ -14,7 +14,14 @@ import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, User, Calendar, FileText, Newspaper } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  User,
+  Calendar,
+  FileText,
+  Newspaper,
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -82,20 +89,23 @@ export default function NewsTable() {
                   <span>Auteur</span>
                 </div>
               </TableHead>
-              <TableHead className='font-semibold text-gray-700'>Extrait</TableHead>
+              <TableHead className='font-semibold text-gray-700'>
+                Extrait
+              </TableHead>
               <TableHead className='text-right font-semibold text-gray-700'>
                 <div className='flex items-center justify-end space-x-2'>
                   <Calendar className='h-4 w-4' />
                   <span>Date</span>
                 </div>
               </TableHead>
-              <TableHead className='text-right font-semibold text-gray-700'>Actions</TableHead>
+              <TableHead className='text-right font-semibold text-gray-700'>
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {newsArticles?.length ? (
-              /* eslint-disable @typescript-eslint/no-explicit-any */
-              newsArticles.map((article, index) => (
+              newsArticles.map((article) => (
                 <TableRow
                   key={article.id}
                   className='hover:bg-gray-50/50 transition-colors duration-200 border-b border-gray-100 group'
@@ -106,14 +116,20 @@ export default function NewsTable() {
                         {article.title ?? 'Sans titre'}
                       </div>
                       {article.isMajorUpdate && (
-                        <Badge variant='secondary' className='bg-red-100 text-red-700 border-red-200'>
+                        <Badge
+                          variant='secondary'
+                          className='bg-red-100 text-red-700 border-red-200'
+                        >
                           🔥 Actualité majeure
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className='py-4'>
-                    <Badge variant='outline' className='bg-blue-50 text-blue-700 border-blue-200'>
+                    <Badge
+                      variant='outline'
+                      className='bg-blue-50 text-blue-700 border-blue-200'
+                    >
                       {article.apiSource ?? 'Admin'}
                     </Badge>
                   </TableCell>
@@ -128,14 +144,14 @@ export default function NewsTable() {
                     <div className='text-sm text-gray-500'>
                       {article.publishedAt
                         ? formatDistanceToNow(new Date(article.publishedAt), {
-                          addSuffix: true,
-                          locale: fr,
-                        })
-                        : article.createdAt
-                          ? formatDistanceToNow(new Date(article.createdAt), {
                             addSuffix: true,
                             locale: fr,
                           })
+                        : article.createdAt
+                          ? formatDistanceToNow(new Date(article.createdAt), {
+                              addSuffix: true,
+                              locale: fr,
+                            })
                           : '-'}
                     </div>
                   </TableCell>
@@ -175,10 +191,12 @@ export default function NewsTable() {
                         </DialogTrigger>
                         <DialogContent className='max-w-md'>
                           <DialogHeader>
-                            <DialogTitle className='text-red-600'>Supprimer l&apos;article</DialogTitle>
+                            <DialogTitle className='text-red-600'>
+                              Supprimer l&apos;article
+                            </DialogTitle>
                             <DialogDescription className='text-gray-600'>
-                              Êtes-vous sûr de vouloir supprimer cet article ? Cette
-                              action est irréversible.
+                              Êtes-vous sûr de vouloir supprimer cet article ?
+                              Cette action est irréversible.
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter className='mt-6 space-x-2'>
@@ -220,8 +238,12 @@ export default function NewsTable() {
                       <Newspaper className='h-8 w-8 text-gray-400' />
                     </div>
                     <div>
-                      <p className='text-gray-500 font-medium'>Aucun article disponible</p>
-                      <p className='text-gray-400 text-sm'>Commencez par créer votre premier article</p>
+                      <p className='text-gray-500 font-medium'>
+                        Aucun article disponible
+                      </p>
+                      <p className='text-gray-400 text-sm'>
+                        Commencez par créer votre premier article
+                      </p>
                     </div>
                   </div>
                 </TableCell>

@@ -38,7 +38,7 @@ export type ProductVariantDto = {
     file?: Blob | File;
     colorCode?: string;
     productId?: string;
-    price?: number;
+    price: number;
     stockQuantity?: number;
     sizes?: Array<string>;
 };
@@ -48,6 +48,9 @@ export type OrderDto = {
     orderDate?: string;
     status?: string;
     orderItems?: Array<OrderItemDto>;
+    deliveryFee?: number;
+    deliveryAddress?: string;
+    totalAmount?: number;
 };
 
 export type OrderItemDto = {
@@ -77,6 +80,10 @@ export type PaymentResponseDto = {
 export type CategoryDto = {
     id?: string;
     name?: string;
+};
+
+export type BulkProductVariantDto = {
+    variants: Array<ProductVariantDto>;
 };
 
 export type HeadingDto = {
@@ -410,7 +417,7 @@ export type UpdateOrderResponses = {
 
 export type UpdateOrderResponse = UpdateOrderResponses[keyof UpdateOrderResponses];
 
-export type ComfirmOrderData = {
+export type ConfirmOrderData = {
     body: Customer;
     path: {
         id: string;
@@ -419,14 +426,14 @@ export type ComfirmOrderData = {
     url: '/api/orders/{id}/confirm';
 };
 
-export type ComfirmOrderResponses = {
+export type ConfirmOrderResponses = {
     /**
      * Accepted
      */
     202: PaymentResponseDto;
 };
 
-export type ComfirmOrderResponse = ComfirmOrderResponses[keyof ComfirmOrderResponses];
+export type ConfirmOrderResponse = ConfirmOrderResponses[keyof ConfirmOrderResponses];
 
 export type DeleteCategoryData = {
     body?: never;
@@ -629,7 +636,9 @@ export type CreateProductResponse = CreateProductResponses[keyof CreateProductRe
 export type GetProductVariantsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query: {
+        productId: string;
+    };
     url: '/api/product-variants';
 };
 
@@ -659,7 +668,7 @@ export type CreateProductVariantResponses = {
 export type CreateProductVariantResponse = CreateProductVariantResponses[keyof CreateProductVariantResponses];
 
 export type CreateProductVariantsData = {
-    body?: Array<ProductVariantDto>;
+    body?: BulkProductVariantDto;
     path?: never;
     query?: never;
     url: '/api/product-variants/bulk';
@@ -786,7 +795,7 @@ export type GetUserOrdersResponses = {
 
 export type GetUserOrdersResponse = GetUserOrdersResponses[keyof GetUserOrdersResponses];
 
-export type DeleteProduct1Data = {
+export type DeleteHeadingData = {
     body?: never;
     path: {
         id: string;
@@ -795,14 +804,14 @@ export type DeleteProduct1Data = {
     url: '/api/headings/{id}';
 };
 
-export type DeleteProduct1Responses = {
+export type DeleteHeadingResponses = {
     /**
      * No Content
      */
     204: void;
 };
 
-export type DeleteProduct1Response = DeleteProduct1Responses[keyof DeleteProduct1Responses];
+export type DeleteHeadingResponse = DeleteHeadingResponses[keyof DeleteHeadingResponses];
 
 export type GetOrderById1Data = {
     body?: never;
@@ -823,5 +832,5 @@ export type GetOrderById1Responses = {
 export type GetOrderById1Response = GetOrderById1Responses[keyof GetOrderById1Responses];
 
 export type ClientOptions = {
-    baseUrl: 'https://lnfoot-api.hublots.co' | (string & {});
+    baseUrl: 'https://api.ln-foot.com' | (string & {});
 };

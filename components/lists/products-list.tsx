@@ -43,7 +43,7 @@ export function ProductsList() {
         { data: productVariants, error: secondError },
       ] = await Promise.all([
         apiClient.getAllProducts(),
-        apiClient.getProductVariants(),
+        apiClient.getProductVariants({ query: { productId: '' } }),
       ])
       if (!products || error || !productVariants || secondError) {
         toast.error('Erreur lors de la récupération des produits')
@@ -52,7 +52,7 @@ export function ProductsList() {
       }
 
       setProducts(
-        products.map((product) => ({
+        products[200].map((product) => ({
           id: product.id,
           name: product.name ?? '',
           description: product.description ?? '',
@@ -62,7 +62,7 @@ export function ProductsList() {
           sizes: product.sizes ?? [],
           imageFile: undefined,
           imageUrl: product.imageUrl,
-          variants: productVariants
+          variants: productVariants[200]
             .filter((variant) => variant.productId === product.id)
             .map((variant) => ({
               colorCode: variant.colorCode ?? '',

@@ -1,26 +1,22 @@
-import { apiClient } from '@/lib/api-client'
+import { useApiClient } from '@/lib/api-client'
 import type { HeadingDto } from '@/lib/api-client/gen'
-import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export function HeadingsList() {
-  const { data: session } = useSession()
+  const { headingsApi } = useApiClient()
   const [headings, setHeadings] = useState<HeadingDto[]>([])
 
   // Fetch headings when the component mounts
   useEffect(() => {
     const fetchHeadings = async () => {
-      const { data, error } = await apiClient.getHeadings({
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-      })
+      const { data, error } = await headingsApi.getHeadings()
 
       if (!data || error) {
         toast.error('Erreur lors de la récupération des titres')
         return
       }
+
       setHeadings(
         data.map((heading) => ({
           id: heading.id,
@@ -45,7 +41,7 @@ export function HeadingsList() {
     return () => {
       clearInterval(interval)
     }
-  }, [session?.accessToken])
+  }, [headingsApi])
 
   return (
     <div className='grid gap-4 sm:grid-cols-2'>

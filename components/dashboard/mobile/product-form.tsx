@@ -123,7 +123,7 @@ export const ProductForm = () => {
         values.variants.map(async (v) => ({
           imageUrl: await uploadFile((v.imageFile ?? [])[0]),
           colorCode: v.colorCode,
-          productId: product?.id, // Fill this from response
+          productId: product[201]?.id, // Fill this from response
           price: v.price,
           stockQuantity: v.stockQuantity,
           sizes: v.sizes,
@@ -134,7 +134,9 @@ export const ProductForm = () => {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
         },
-        body: variantsPayload,
+        body: {
+          variants: variantsPayload,
+        },
       })
       if (!variantsResult.data || variantsResult.error) {
         toast.error('Erreur lors de la création des variantes')
