@@ -67,6 +67,7 @@
     "zod": "^3.25.7"
   },
   "devDependencies": {
+    "@7nohe/openapi-react-query-codegen": "^1.6.2",
     "@hey-api/openapi-ts": "^0.69.1",
     "@tailwindcss/postcss": "^4",
     "@types/eslint": "^8.56.10",

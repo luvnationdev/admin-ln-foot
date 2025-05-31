@@ -1,103 +1,154 @@
-import { apiClient } from '@/lib/api-client'
-import { Trash2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import type { ProductFormValues } from '../dashboard/mobile/product-form'
+"use client";
+
+import { Trash2 } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import type { ProductFormValues, ProductVariantFormValues } from '../dashboard/mobile/product-form'; // Assuming ProductVariantFormValues might be useful
+import {
+  useProductControllerServiceGetApiProducts,
+  useProductVariantControllerServiceGetApiProductVariants,
+  useProductVariantControllerServiceDeleteApiProductVariantsById,
+  useProductControllerServiceDeleteApiProductsById,
+} from '@/lib/api-client/rq-generated/queries';
+import { useQueryClient } from '@tanstack/react-query';
+import type { ProductDto, ProductVariantDto } from '@/lib/api-client/rq-generated/requests/types.gen';
+
+// Skeleton Loader
+function ProductSkeleton() {
+  return (
+    <div className="border rounded-lg p-4 animate-pulse">
+      <div className="w-full h-32 bg-gray-300 rounded mb-2"></div>
+      <div className="h-4 bg-gray-300 rounded w-3/4 mb-1"></div>
+      <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+      <div className="h-3 bg-gray-300 rounded w-full mb-1"></div>
+      <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+    </div>
+  );
+}
+
 
 export function ProductsList() {
-  const { data: session } = useSession()
-  const [products, setProducts] = useState<ProductFormValues[]>([])
+  const queryClient = useQueryClient();
 
-  const handleDeleteProduct = async (product: ProductFormValues) => {
-    const shouldDelete = window.confirm(
-      'Etes-vous sure de vouloir supprimer ce produit?'
-    )
-    if (!shouldDelete) {
-      return
-    }
+  const { data: productsData, isLoading: isLoadingProducts, error: productsError } =
+    useProductControllerServiceGetApiProducts(undefined, {
+      queryKey: ['products'], // Add a query key
+    });
 
-    await Promise.all(
-      product.variants.map((variant) =>
-        apiClient.deleteProductVariant({
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-          path: { id: `${variant.id}` },
-        })
-      )
-    )
+  const { data: variantsData, isLoading: isLoadingVariants, error: variantsError } =
+    useProductVariantControllerServiceGetApiProductVariants({}, undefined, { // Fetch all variants
+      queryKey: ['allProductVariants'], // Add a query key
+    });
 
-    await apiClient.deleteProduct({
-      headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
-      },
-      path: { id: `${product.id}` },
-    })
-  }
+  const deleteProductMutation = useProductControllerServiceDeleteApiProductsById({
+    onSuccess: () => {
+      toast.success('Produit supprimé avec succès.');
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['allProductVariants'] }); // Also invalidate variants
+    },
+    onError: (error) => {
+      toast.error(`Erreur lors de la suppression du produit: ${error.message}`);
+    },
+  });
+
+  const deleteVariantMutation = useProductVariantControllerServiceDeleteApiProductVariantsById({
+    onSuccess: () => {
+      // toast.success('Variante supprimée.'); // May be too noisy if deleting many
+      queryClient.invalidateQueries({ queryKey: ['allProductVariants'] });
+    },
+    onError: (error) => {
+      toast.error(`Erreur lors de la suppression de la variante: ${error.message}`);
+    },
+  });
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const [
-        { data: products, error },
-        { data: productVariants, error: secondError },
-      ] = await Promise.all([
-        apiClient.getAllProducts(),
-        apiClient.getProductVariants({ query: { productId: '' } }),
-      ])
-      if (!products || error || !productVariants || secondError) {
-        toast.error('Erreur lors de la récupération des produits')
-        console.error('Erreur lors de la récupération des produits:', error)
-        return
+    if (productsError) {
+      toast.error(`Erreur produits: ${productsError.message}`);
+    }
+    if (variantsError) {
+      toast.error(`Erreur variantes: ${variantsError.message}`);
+    }
+  }, [productsError, variantsError]);
+
+  const products = useMemo(() => {
+    if (!productsData || !variantsData) return [];
+
+    return productsData.map((product: ProductDto): ProductFormValues => ({
+      id: product.id,
+      name: product.name ?? '',
+      description: product.description ?? '',
+      price: product.price ?? 0,
+      stockQuantity: product.stockQuantity ?? 0,
+      categoryNames: product.categoryNames ?? [],
+      sizes: product.sizes ?? [],
+      imageUrl: product.imageUrl,
+      imageFile: undefined, // Not available from API, keep as per original
+      variants: variantsData
+        .filter((variant: ProductVariantDto) => variant.productId === product.id)
+        .map((variant: ProductVariantDto): ProductVariantFormValues => ({ // Use ProductVariantFormValues if defined, or inline structure
+          id: variant.id ?? '',
+          colorCode: variant.colorCode ?? '',
+          price: variant.price ?? 0,
+          stockQuantity: variant.stockQuantity ?? 0,
+          sizes: variant.sizes ?? [],
+          imageUrl: variant.imageUrl,
+          imageFile: undefined, // Not available from API
+        })),
+    }));
+  }, [productsData, variantsData]);
+
+  const handleDeleteProduct = async (product: ProductFormValues) => {
+    if (!product.id) return;
+    const shouldDelete = window.confirm('Etes-vous sûr de vouloir supprimer ce produit et toutes ses variantes?');
+    if (!shouldDelete) return;
+
+    try {
+      // Delete all variants first
+      if (product.variants && product.variants.length > 0) {
+        toast.loading('Suppression des variantes...');
+        await Promise.all(
+          product.variants.map(variant => {
+            if (variant.id) {
+              return deleteVariantMutation.mutateAsync({ id: variant.id });
+            }
+            return Promise.resolve();
+          })
+        );
+        toast.dismiss(); // Dismiss loading toast for variants
       }
-
-      setProducts(
-        products[200].map((product) => ({
-          id: product.id,
-          name: product.name ?? '',
-          description: product.description ?? '',
-          price: product.price ?? 0,
-          stockQuantity: product.stockQuantity ?? 0,
-          categoryNames: product.categoryNames ?? [],
-          sizes: product.sizes ?? [],
-          imageFile: undefined,
-          imageUrl: product.imageUrl,
-          variants: productVariants[200]
-            .filter((variant) => variant.productId === product.id)
-            .map((variant) => ({
-              colorCode: variant.colorCode ?? '',
-              price: variant.price ?? 0,
-              stockQuantity: variant.stockQuantity ?? 0,
-              sizes: variant.sizes ?? [],
-              id: variant.id ?? '',
-              imageUrl: variant.imageUrl,
-              imageFile: undefined, // Assuming you want to keep this undefined
-            })),
-        }))
-      )
+      // Then delete the main product
+      deleteProductMutation.mutate({ id: product.id });
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Une erreur est survenue lors de la suppression.');
+      console.error("Delete error:", error);
     }
+  };
 
-    fetchProducts().catch((error) => {
-      console.error('Erreur lors de la récupération des produits:', error)
-      toast.error('Erreur lors de la récupération des produits:')
-    })
-    return () => {
-      setProducts([])
-    }
-  }, [session?.accessToken])
+  if (isLoadingProducts || isLoadingVariants) {
+    return (
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+        {[...Array(3)].map((_, i) => <ProductSkeleton key={i} />)}
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return <p className="text-center text-gray-500">Aucun produit trouvé.</p>;
+  }
 
   return (
-    <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-      {products.map((product, index) => (
+    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+      {products.map((product) => (
         <div
-          key={index}
+          key={product.id || product.name} // Use a stable key
           className='border rounded-lg p-4 hover:shadow cursor-pointer relative'
         >
-          {/* Delete Icon at top-right */}
           <button
             onClick={() => handleDeleteProduct(product)}
-            className='absolute top-2 right-2 text-red-600 hover:text-red-800'
-            title='Supprimer'
+            className='absolute top-2 right-2 text-red-600 hover:text-red-800 p-1 bg-white/50 rounded-full'
+            title='Supprimer le produit'
+            disabled={deleteProductMutation.isPending || deleteVariantMutation.isPending}
           >
             <Trash2 size={16} />
           </button>
@@ -110,26 +161,23 @@ export function ProductsList() {
           <h4 className='mt-2 font-semibold text-sm'>{product.name}</h4>
           <p className='text-sm text-gray-600'>{product.price} FCFA</p>
 
-          {/* Categories */}
           <div className='mt-1 text-xs text-gray-500'>
             Catégories: {product.categoryNames.join(', ')}
           </div>
 
-          {/* Sizes */}
           {product.sizes.length > 0 && (
             <div className='mt-1 text-xs text-gray-500'>
               Tailles: {product.sizes.join(', ')}
             </div>
           )}
 
-          {/* Variant Colors */}
           {product.variants.length > 0 && (
-            <div className='mt-1 text-xs text-gray-500'>
-              Couleurs:
+            <div className='mt-1 text-xs'>
+              <span className="text-gray-500">Couleurs:</span>
               <div className='flex flex-wrap mt-1 gap-1'>
                 {product.variants.map((variant, vIdx) => (
                   <div
-                    key={vIdx}
+                    key={variant.id || vIdx}
                     className='w-4 h-4 rounded-full border'
                     style={{ backgroundColor: variant.colorCode }}
                     title={variant.colorCode}
@@ -141,5 +189,5 @@ export function ProductsList() {
         </div>
       ))}
     </div>
-  )
+  );
 }

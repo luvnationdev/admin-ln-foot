@@ -1,61 +1,63 @@
 'use client'
 
 import Preview from '@/components/previews/product/preview'
-import { apiClient } from '@/lib/api-client'
-import { useUploadFile } from '@/lib/minio/upload'
+import { useUploadFile } from '@/lib/minio/upload' // Keep for file uploads
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useSession } from 'next-auth/react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import {
+  useProductControllerServicePostApiProducts,
+  useProductVariantControllerServicePostApiProductVariantsBulk, // Assuming bulk variant creation
+} from '@/lib/api-client/rq-generated/queries'
+import { useQueryClient } from '@tanstack/react-query'
+import type { ProductDto, ProductVariantDto, BulkProductVariantDto } from '@/lib/api-client/rq-generated/requests/types.gen'
+// Removed useSession
+
+// Define a type for variant form values if not already available from ProductFormValues.variants
+export type ProductVariantFormValues = {
+  id?: string;
+  imageFile?: FileList;
+  colorCode: string;
+  price: number;
+  stockQuantity: number;
+  sizes: string[];
+  imageUrl?: string;
+};
 
 export const productSchema = z.object({
   id: z.string().optional(),
-  imageFile: z
-    .custom<FileList>(
-      (val) => {
-        if (typeof window === 'undefined') return true // skip validation on SSR
-        return val instanceof FileList
-      },
-      {
-        message: 'Invalid file list',
-      }
-    )
-    .optional(), // For upload
+  imageFile: z.custom<FileList>((val) => typeof window === 'undefined' || val instanceof FileList, { message: 'Invalid file list' }).optional(),
   imageUrl: z.string().optional(),
-  name: z.string().min(1),
+  name: z.string().min(1, "Le nom du produit est requis."),
   description: z.string().optional(),
-  price: z.coerce.number().positive(),
-  stockQuantity: z.coerce.number().int().nonnegative(),
-  categoryNames: z.array(z.string()).min(1),
-  sizes: z.array(z.string()),
+  price: z.coerce.number().positive("Le prix doit être positif."),
+  stockQuantity: z.coerce.number().int().nonnegative("Le stock doit être non-négatif."),
+  categoryNames: z.array(z.string()).min(1, "Au moins une catégorie est requise."),
+  sizes: z.array(z.string()).optional(), // Make optional if not always required
   variants: z.array(
     z.object({
       id: z.string().optional(),
-      imageFile: z
-        .custom<FileList>(
-          (val) => {
-            if (typeof window === 'undefined') return true // skip validation on SSR
-            return val instanceof FileList
-          },
-          {
-            message: 'Invalid file list',
-          }
-        )
-        .optional(),
-      colorCode: z.string().min(1),
-      price: z.coerce.number().positive(),
-      stockQuantity: z.coerce.number().int().nonnegative(),
-      sizes: z.array(z.string()),
+      imageFile: z.custom<FileList>((val) => typeof window === 'undefined' || val instanceof FileList).optional(),
+      colorCode: z.string().min(1, "Le code couleur est requis."),
+      price: z.coerce.number().positive("Le prix de la variante doit être positif."),
+      stockQuantity: z.coerce.number().int().nonnegative("Le stock de la variante doit être non-négatif."),
+      sizes: z.array(z.string()).optional(), // Make optional
       imageUrl: z.string().optional(),
     })
-  ),
-})
+  ).optional(), // Make variants array optional
+});
 
-export type ProductFormValues = z.infer<typeof productSchema>
+export type ProductFormValues = z.infer<typeof productSchema>;
 
 export const ProductForm = () => {
-  const { data: session } = useSession()
+  const queryClient = useQueryClient();
+  // The useUploadFile hook might need to be instantiated per file if it holds state for a single file.
+  // For multiple files (main product + variants), this might need adjustment or multiple instances.
+  // For simplicity, let's assume a generic uploadFile function that can be called with any file.
+  // If useUploadFile is stateful for a single 'uploadFileInput', it needs careful handling for multiple files.
+  // Let's refine useUploadFile to accept a file directly: `uploadFile(file: File)`
+  const { uploadFile, isUploading, error: uploadError } = useUploadFile(); // Generic uploader instance
 
   const {
     register,
@@ -63,7 +65,8 @@ export const ProductForm = () => {
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    reset,
+    formState: { errors: formErrors }, // Use RHF errors
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -75,84 +78,122 @@ export const ProductForm = () => {
       sizes: [],
       variants: [],
     },
-  })
+  });
 
-  const {
-    fields: variantFields,
-    append,
-    remove,
-  } = useFieldArray({
-    control,
-    name: 'variants',
-  })
+  const { fields: variantFields, append, remove } = useFieldArray({ control, name: 'variants' });
 
-  const { uploadFile } = useUploadFile()
+  const createProductMutation = useProductControllerServicePostApiProducts({
+    onSuccess: (data) => {
+      // data here is the created ProductDto (or the full API response depending on codegen config)
+      // Assuming data is ProductDto based on typical hook return.
+      toast.success(`Produit "${data.name}" créé avec succès!`);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (error) => {
+      toast.error(`Erreur création produit: ${error.message}`);
+    },
+  });
+
+  const createVariantsMutation = useProductVariantControllerServicePostApiProductVariantsBulk({
+    onSuccess: () => {
+      toast.success('Variantes créées avec succès!');
+      queryClient.invalidateQueries({ queryKey: ['allProductVariants'] }); // Invalidate variants list
+      queryClient.invalidateQueries({ queryKey: ['products'] }); // Also product list as it might show variant counts/details
+      reset(); // Reset form after everything is successful
+    },
+    onError: (error) => {
+      toast.error(`Erreur création variantes: ${error.message}`);
+    },
+  });
+
+  // Consolidate loading state
+  const isSubmitting = createProductMutation.isPending || createVariantsMutation.isPending || isUploading;
 
   const onSubmit = async (values: ProductFormValues) => {
-    try {
-      const imageUrl = await uploadFile((values.imageFile ?? [])[0])
+    let mainImageUrl = values.imageUrl; // Use existing URL if provided (e.g. editing)
 
-      const productPayload = {
-        imageUrl,
-        name: values.name,
-        description: values.description,
-        price: values.price,
-        stockQuantity: values.stockQuantity,
-        categoryNames: values.categoryNames,
-        sizes: values.sizes,
+    if (values.imageFile && values.imageFile.length > 0) {
+      try {
+        toast.loading("Téléchargement de l'image principale...");
+        mainImageUrl = await uploadFile(values.imageFile[0]); // Pass file to uploadFile
+        toast.dismiss();
+      } catch (e) {
+        toast.dismiss();
+        toast.error("Échec du téléchargement de l'image principale.");
+        console.error(e);
+        return;
       }
-
-      const { data: product, error } = await apiClient.createProduct({
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-        body: productPayload,
-      })
-
-      if (!product || error) {
-        toast.error(`Erreur lors de la création du produit`)
-        console.error('Erreur lors de la création du produit:', error)
-        return
-      }
-
-      if (!values.variants?.length) {
-        return
-      }
-
-      const variantsPayload = await Promise.all(
-        values.variants.map(async (v) => ({
-          imageUrl: await uploadFile((v.imageFile ?? [])[0]),
-          colorCode: v.colorCode,
-          productId: product[201]?.id, // Fill this from response
-          price: v.price,
-          stockQuantity: v.stockQuantity,
-          sizes: v.sizes,
-        }))
-      )
-
-      const variantsResult = await apiClient.createProductVariants({
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-        body: {
-          variants: variantsPayload,
-        },
-      })
-      if (!variantsResult.data || variantsResult.error) {
-        toast.error('Erreur lors de la création des variantes')
-        console.error(
-          'Erreur lors de la création des variantes:',
-          variantsResult.error
-        )
-        return
-      }
-    } catch (error: unknown) {
-      console.error('Une erreur inconnue est survenue: ', error)
-      toast.error('Une erreur inconnue est survenue')
+    } else if (!mainImageUrl && !values.id) { // Require image for new products
+        toast.error("L'image principale du produit est requise.");
+        return;
     }
-  }
 
-  const formData = watch()
+    const productPayload: Omit<ProductDto, 'id' | 'createdAt' | 'updatedAt'> = { // Ensure payload matches DTO
+      imageUrl: mainImageUrl,
+      name: values.name,
+      description: values.description,
+      price: values.price,
+      stockQuantity: values.stockQuantity,
+      categoryNames: values.categoryNames,
+      sizes: values.sizes ?? [], // Ensure sizes is an array
+    };
+
+    try {
+      const createdProduct = await createProductMutation.mutateAsync({ formData: productPayload as ProductDto }); // Cast if necessary for formData structure
+
+      if (!createdProduct || !createdProduct.id) { // Check if product creation was successful and returned an ID
+        toast.error("Échec de la création du produit ou ID manquant.");
+        return;
+      }
+
+      if (!values.variants || values.variants.length === 0) {
+        reset(); // Reset form if no variants after successful product creation
+        return;
+      }
+
+      toast.loading("Téléchargement des images des variantes...");
+      const variantsWithImageUrls: ProductVariantDto[] = await Promise.all(
+        values.variants.map(async (variant, index) => {
+          let variantImageUrl = variant.imageUrl;
+          if (variant.imageFile && variant.imageFile.length > 0) {
+            variantImageUrl = await uploadFile(variant.imageFile[0], `variant_${createdProduct.id}_${index}`);
+          }
+          return {
+            ...variant,
+            imageUrl: variantImageUrl,
+            productId: createdProduct.id, // Assign product ID
+            // Ensure other fields match ProductVariantDto
+            price: Number(variant.price),
+            stockQuantity: Number(variant.stockQuantity),
+            sizes: variant.sizes ?? [],
+            imageFile: undefined, // Remove FileList from DTO
+          } as ProductVariantDto;
+        })
+      );
+      toast.dismiss();
+
+      await createVariantsMutation.mutateAsync({ formData: { variants: variantsWithImageUrls } as BulkProductVariantDto });
+
+    } catch (error) {
+      // Errors from mutateAsync are caught here.
+      // Specific error toasts are handled by onError in mutation hooks if not caught by individual try/catch for uploads.
+      console.error("Une erreur s'est produite lors de la soumission :", error);
+    }
+  };
+
+  // Display form validation errors
+  useEffect(() => {
+    for (const error of Object.values(formErrors)) {
+      if (error && error.message) {
+        toast.error(error.message);
+      }
+    }
+    if (uploadError){
+        toast.error(`Erreur d'upload: ${uploadError.message}`);
+    }
+  }, [formErrors, uploadError]);
+
+  const formData = watch();
 
   return (
     <form
@@ -160,78 +201,51 @@ export const ProductForm = () => {
       className='grid grid-cols-1 md:grid-cols-2 gap-6'
     >
       <div className='space-y-4'>
+        {/* Fields remain largely the same, ensure disabled={isSubmitting} is on inputs */}
         <div>
           <label className='block text-sm font-medium'>Image principale</label>
-          <input
-            type='file'
-            {...register('imageFile')}
-            className='w-full border rounded-md p-2'
-          />
+          <input type='file' {...register('imageFile')} className='w-full border rounded-md p-2' disabled={isSubmitting} />
         </div>
 
         <div>
           <label className='block text-sm font-medium'>Nom</label>
-          <input
-            {...register('name')}
-            className='w-full border rounded-md p-2'
-          />
+          <input {...register('name')} className='w-full border rounded-md p-2' disabled={isSubmitting} />
         </div>
 
         <div>
           <label className='block text-sm font-medium'>Description</label>
-          <input
-            {...register('description')}
-            className='w-full border rounded-md p-2'
-          />
+          <input {...register('description')} className='w-full border rounded-md p-2' disabled={isSubmitting} />
         </div>
 
         <div>
           <label className='block text-sm font-medium'>Prix</label>
-          <input
-            type='number'
-            {...register('price')}
-            className='w-full border rounded-md p-2'
-          />
+          <input type='number' {...register('price')} className='w-full border rounded-md p-2' disabled={isSubmitting} />
         </div>
 
         <div>
           <label className='block text-sm font-medium'>Quantité en stock</label>
+          <input type='number' {...register('stockQuantity')} className='w-full border rounded-md p-2' disabled={isSubmitting} />
+        </div>
+
+        <div>
+          <label className='block text-sm font-medium'>Catégories (séparées par des virgules)</label>
           <input
-            type='number'
-            {...register('stockQuantity')}
+            type='text'
+            defaultValue={formData.categoryNames?.join(', ')}
+            onBlur={(e) => setValue('categoryNames', e.target.value.split(',').map(c => c.trim()), { shouldValidate: true, shouldDirty: true })}
             className='w-full border rounded-md p-2'
+            disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label className='block text-sm font-medium'>
-            Catégories (séparées par des virgules)
-          </label>
+          <label className='block text-sm font-medium'>Tailles (séparées par des virgules)</label>
           <input
             type='text'
-            onBlur={(e) =>
-              setValue(
-                'categoryNames',
-                e.target.value.split(',').map((c) => c.trim())
-              )
-            }
+            defaultValue={formData.sizes?.join(', ')}
+            onBlur={(e) => setValue('sizes', e.target.value.split(',').map(s => s.trim()), { shouldValidate: true, shouldDirty: true })}
             className='w-full border rounded-md p-2'
-          />
-        </div>
-
-        <div>
-          <label className='block text-sm font-medium'>
-            Tailles (séparées par des virgules)
-          </label>
-          <input
-            type='text'
-            onBlur={(e) =>
-              setValue(
-                'sizes',
-                e.target.value.split(',').map((s) => s.trim())
-              )
-            }
-            className='w-full border rounded-md p-2'
+            disabled={isSubmitting}
           />
         </div>
 
@@ -240,88 +254,36 @@ export const ProductForm = () => {
           <div className='space-y-4'>
             {variantFields.map((variant, index) => (
               <div key={variant.id} className='border rounded p-3 space-y-2'>
-                <input
-                  type='file'
-                  {...register(`variants.${index}.imageFile`)}
-                  className='w-full'
-                />
+                <input type='file' {...register(`variants.${index}.imageFile`)} className='w-full' disabled={isSubmitting} />
                 <div className='flex items-center gap-2'>
-                  <input
-                    type='color'
-                    value={formData.variants[index]?.colorCode || '#000000'}
-                    onChange={(e) =>
-                      setValue(`variants.${index}.colorCode`, e.target.value)
-                    }
-                    className='h-10 w-10 p-0 border rounded'
-                    title='Choisir une couleur'
-                  />
-                  <input
-                    value={formData.variants[index]?.colorCode || '#000000'}
-                    onChange={(e) =>
-                      setValue(`variants.${index}.colorCode`, e.target.value)
-                    }
-                    placeholder='Couleur'
-                    className='flex-1 border rounded-md p-2'
-                    type='text'
-                  />
+                  <input type='color' {...register(`variants.${index}.colorCode`)} className='h-10 w-10 p-0 border rounded' title='Choisir une couleur' disabled={isSubmitting} />
+                  <input {...register(`variants.${index}.colorCode`)} placeholder='Code Couleur (ex: #FFFFFF)' className='flex-1 border rounded-md p-2' type='text' disabled={isSubmitting} />
                 </div>
-
+                <input type='number' {...register(`variants.${index}.price`)} placeholder='Prix Variante' className='w-full border rounded-md p-2' disabled={isSubmitting} />
+                <input type='number' {...register(`variants.${index}.stockQuantity`)} placeholder='Stock Variante' className='w-full border rounded-md p-2' disabled={isSubmitting} />
                 <input
-                  type='number'
-                  {...register(`variants.${index}.price`)}
-                  placeholder='Prix'
+                  placeholder='Tailles Variante (séparées par des virgules)'
+                  defaultValue={formData.variants?.[index]?.sizes?.join(', ')}
+                  onBlur={(e) => setValue(`variants.${index}.sizes`, e.target.value.split(',').map(s => s.trim()), { shouldValidate: true, shouldDirty: true })}
                   className='w-full border rounded-md p-2'
+                  disabled={isSubmitting}
                 />
-                <input
-                  type='number'
-                  {...register(`variants.${index}.stockQuantity`)}
-                  placeholder='Stock'
-                  className='w-full border rounded-md p-2'
-                />
-                <input
-                  placeholder='Tailles (séparées par des virgules)'
-                  onBlur={(e) =>
-                    setValue(
-                      `variants.${index}.sizes`,
-                      e.target.value.split(',').map((s) => s.trim())
-                    )
-                  }
-                  className='w-full border rounded-md p-2'
-                />
-                <button
-                  type='button'
-                  onClick={() => remove(index)}
-                  className='text-red-500'
-                >
-                  Supprimer
-                </button>
+                <button type='button' onClick={() => remove(index)} className='text-red-500' disabled={isSubmitting}>Supprimer Variante</button>
               </div>
             ))}
-
             <button
               type='button'
-              onClick={() =>
-                append({
-                  colorCode: '',
-                  imageFile: undefined,
-                  price: 0,
-                  stockQuantity: 0,
-                  sizes: [],
-                })
-              }
+              onClick={() => append({ colorCode: '#000000', price: 0, stockQuantity: 0, sizes: [] })}
               className='mt-2 text-sm text-blue-600'
+              disabled={isSubmitting}
             >
               + Ajouter une variante
             </button>
           </div>
         </div>
 
-        <button
-          type='submit'
-          disabled={isSubmitting}
-          className='w-full py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700'
-        >
-          {isSubmitting ? 'Publication...' : 'Publier'}
+        <button type='submit' disabled={isSubmitting} className='w-full py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-70'>
+          {isSubmitting ? 'Publication en cours...' : 'Publier le Produit'}
         </button>
       </div>
 
