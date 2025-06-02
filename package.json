@@ -18,7 +18,7 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
-    "codegen": "npx openapi-rq -i https://api.ln-foot.com/v3/api-docs -o lib/api-client/rq-generated -c fetch",
+    "codegen": "npx @7nohe/openapi-react-query-codegen -i https://api.ln-foot.com/v3/api-docs -o lib/api-client/rq-generated -c fetch",
     "postinstall": "yarn codegen"
   },
   "dependencies": {
