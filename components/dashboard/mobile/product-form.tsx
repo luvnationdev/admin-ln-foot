@@ -395,8 +395,9 @@ export const ProductForm = () => {
                 </button>
               </div>
             ))}
-            <button
+            {false && <button
               type='button'
+              
               onClick={() =>
                 append({
                   colorCode: '#000000',
@@ -409,7 +410,7 @@ export const ProductForm = () => {
               disabled={isSubmitting}
             >
               + Ajouter une variante
-            </button>
+            </button>}
           </div>
         </div>
 
