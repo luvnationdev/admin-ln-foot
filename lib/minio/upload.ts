@@ -37,7 +37,7 @@ export function useUploadFile(bucket: string, file?: File | null) {
         }
 
         // You can now use this to reference the file
-        return `https://${objectUrl}`
+        return objectUrl
       } catch (error) {
         setError(error as Error)
         throw error

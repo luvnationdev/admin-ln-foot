@@ -70,7 +70,7 @@ export const productSchema = z.object({
         imageUrl: z.string().optional(),
       })
     )
-    .optional(), // Make variants array optional
+    .optional(),
 })
 
 export type ProductFormValues = z.infer<typeof productSchema>
@@ -166,29 +166,27 @@ export const ProductForm = () => {
     }
 
     const productPayload: Omit<ProductDto, 'id' | 'createdAt' | 'updatedAt'> = {
-      // Ensure payload matches DTO
       imageUrl: mainImageUrl,
       name: values.name,
       description: values.description,
       price: values.price,
       stockQuantity: values.stockQuantity,
       categoryNames: values.categoryNames,
-      sizes: values.sizes ?? [], // Ensure sizes is an array
+      sizes: values.sizes ?? [],
     }
 
     try {
       const createdProduct = await createProductMutation.mutateAsync({
-        formData: productPayload as ProductDto,
-      }) // Cast if necessary for formData structure
+        formData: productPayload,
+      })
 
       if (!createdProduct?.id) {
-        // Check if product creation was successful and returned an ID
         toast.error('Échec de la création du produit ou ID manquant.')
         return
       }
 
       if (!values.variants || values.variants.length === 0) {
-        reset() // Reset form if no variants after successful product creation
+        reset()
         return
       }
 
@@ -202,12 +200,11 @@ export const ProductForm = () => {
           return {
             ...variant,
             imageUrl: variantImageUrl,
-            productId: createdProduct.id, // Assign product ID
-            // Ensure other fields match ProductVariantDto
+            productId: createdProduct.id,
             price: Number(variant.price),
             stockQuantity: Number(variant.stockQuantity),
             sizes: variant.sizes ?? [],
-            imageFile: undefined, // Remove FileList from DTO
+            imageFile: undefined,
           } as ProductVariantDto
         })
       )
@@ -219,13 +216,10 @@ export const ProductForm = () => {
         },
       })
     } catch (error) {
-      // Errors from mutateAsync are caught here.
-      // Specific error toasts are handled by onError in mutation hooks if not caught by individual try/catch for uploads.
       console.error("Une erreur s'est produite lors de la soumission :", error)
     }
   }
 
-  // Display form validation errors
   useEffect(() => {
     for (const error of Object.values(formErrors)) {
       if (error && error.message) {
@@ -245,7 +239,6 @@ export const ProductForm = () => {
       className='grid grid-cols-1 md:grid-cols-2 gap-6'
     >
       <div className='space-y-4'>
-        {/* Fields remain largely the same, ensure disabled={isSubmitting} is on inputs */}
         <div>
           <label className='block text-sm font-medium'>Image principale</label>
           <input

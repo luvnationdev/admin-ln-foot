@@ -1,6 +1,6 @@
 import { env } from '@/env'
 import { OpenAPI } from './rq-generated/requests/core/OpenAPI'
-import { getSession } from 'next-auth/react'
+import { getSession, signOut } from 'next-auth/react'
 
 // This function will be our request interceptor
 async function addAuthTokenToRequest(
@@ -28,6 +28,12 @@ export function registerAuthInterceptor() {
   if (!isInterceptorRegistered) {
     OpenAPI.BASE = env.NEXT_PUBLIC_API_URL
     OpenAPI.interceptors.request.use(addAuthTokenToRequest)
+    OpenAPI.interceptors.response.use((res) => {
+      if (res.status === 401) {
+        void signOut({ redirectTo: '/' })
+      }
+      return res
+    })
     isInterceptorRegistered = true
     console.log(
       'Authentication interceptor for API requests has been registered.'

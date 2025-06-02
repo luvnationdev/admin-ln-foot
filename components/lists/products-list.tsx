@@ -1,23 +1,22 @@
 'use client'
 
+import {
+  useProductControllerServiceDeleteApiProductsById,
+  useProductControllerServiceGetApiProducts,
+  useProductVariantControllerServiceDeleteApiProductVariantsById,
+  useProductVariantControllerServiceGetApiProductVariants,
+} from '@/lib/api-client/rq-generated/queries'
+import type {
+  ProductDto,
+  ProductVariantDto,
+} from '@/lib/api-client/rq-generated/requests/types.gen'
 import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type {
   ProductFormValues,
   ProductVariantFormValues,
-} from '../dashboard/mobile/product-form' // Assuming ProductVariantFormValues might be useful
-import {
-  useProductControllerServiceGetApiProducts,
-  useProductVariantControllerServiceGetApiProductVariants,
-  useProductVariantControllerServiceDeleteApiProductVariantsById,
-  useProductControllerServiceDeleteApiProductsById,
-} from '@/lib/api-client/rq-generated/queries'
-import { useQueryClient } from '@tanstack/react-query'
-import type {
-  ProductDto,
-  ProductVariantDto,
-} from '@/lib/api-client/rq-generated/requests/types.gen'
+} from '../dashboard/mobile/product-form'; // Assuming ProductVariantFormValues might be useful
 
 // Skeleton Loader
 function ProductSkeleton() {
@@ -34,18 +33,19 @@ function ProductSkeleton() {
 
 export function ProductsList() {
   const [selectedProductId, setSelectedProductId] = useState<string>()
-  const queryClient = useQueryClient()
 
   const {
     data: productsData,
     isLoading: isLoadingProducts,
     error: productsError,
+    refetch: refetchAllProducts,
   } = useProductControllerServiceGetApiProducts(['products'])
 
   const {
     data: variantsData,
     isLoading: isLoadingVariants,
     error: variantsError,
+    refetch: refetchAllProductVariants,
   } = useProductVariantControllerServiceGetApiProductVariants(
     {
       productId: selectedProductId,
@@ -55,10 +55,10 @@ export function ProductsList() {
 
   const deleteProductMutation =
     useProductControllerServiceDeleteApiProductsById({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success('Produit supprimé avec succès.')
-        void queryClient.invalidateQueries({ queryKey: ['products'] })
-        void queryClient.invalidateQueries({ queryKey: ['allProductVariants'] }) // Also invalidate variants
+        void refetchAllProducts()
+        void refetchAllProductVariants()
       },
       onError: (error) => {
         console.error('Error deleting product:', error)
@@ -68,9 +68,8 @@ export function ProductsList() {
 
   const deleteVariantMutation =
     useProductVariantControllerServiceDeleteApiProductVariantsById({
-      onSuccess: () => {
-        // toast.success('Variante supprimée.'); // May be too noisy if deleting many
-        void queryClient.invalidateQueries({ queryKey: ['allProductVariants'] })
+      onSuccess: async () => {
+        void refetchAllProductVariants()
       },
       onError: (error) => {
         console.error('Error deleting product variant:', error)

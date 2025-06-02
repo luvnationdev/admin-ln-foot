@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { minioClient } from '@/lib/minio'
 import { adminProcedure, createTRPCRouter } from '@/server/api/trpc'
 import { env } from '@/env'
+import { getMinioObjectPublicUrl } from '@/lib/utils'
 
 export const uploadRouter = createTRPCRouter({
   getPresignedUrl: adminProcedure
@@ -33,7 +34,10 @@ export const uploadRouter = createTRPCRouter({
             },
           ],
         }
-        await minioClient.setBucketPolicy(bucketName, JSON.stringify(publicReadPolicy))
+        await minioClient.setBucketPolicy(
+          bucketName,
+          JSON.stringify(publicReadPolicy)
+        )
       }
 
       const uploadUrl = await minioClient.presignedPutObject(
@@ -42,7 +46,10 @@ export const uploadRouter = createTRPCRouter({
         24 * 3600
       )
 
-      const objectUrl = `${env.MINIO_ENDPOINT}/${bucketName}/${encodeURIComponent(objectName)}`
+      const objectUrl = getMinioObjectPublicUrl(
+        env.MINIO_ENDPOINT,
+        `${bucketName}/${encodeURIComponent(objectName)}`
+      )
 
       return { uploadUrl, objectUrl }
     }),
