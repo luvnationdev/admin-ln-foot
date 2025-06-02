@@ -55,3 +55,9 @@ export function toQueryParams(params: FixtureQueryParams): string {
 
   return query.toString()
 }
+
+export function getMinioObjectPublicUrl(endpoint: string, objectPath: string) {
+  return process.env.NODE_ENV === 'production'
+    ? `https://${endpoint}/${objectPath}`
+    : `http://${endpoint}:9000/${objectPath}`
+}

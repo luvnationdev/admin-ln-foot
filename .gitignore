@@ -21,6 +21,7 @@
 
 # production
 /build
+rq-generated
 
 # misc
 .DS_Store

@@ -7,6 +7,7 @@ import { TRPCReactProvider } from "@/lib/trpc/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/server/auth";
 import { Toaster } from "sonner";
+import { AppSetup } from "@/components/AppSetup"; // Import AppSetup
 
 const openSans = Open_Sans({
   variable: "--font-open-sans",
@@ -28,7 +29,8 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${openSans.variable} antialiased`}>
         <TRPCReactProvider>
-          <SessionProvider>
+          <SessionProvider session={session}> {/* Pass session to SessionProvider */}
+            <AppSetup /> {/* Add AppSetup here */}
             <Navbar isLoggedIn={!!session} user={session?.user} />
             <Toaster />
             {children}

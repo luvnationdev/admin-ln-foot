@@ -30,7 +30,7 @@ export function useNewsEditorForm({
   const { mutateAsync: updateNewsArticle, isPending: isUpdating } =
     trpc.newsArticles.updateNewsArticle.useMutation()
   const { uploadFile: uploadFeaturedImageFileAndGetUrl } =
-    useUploadFile(featuredImageFile)
+    useUploadFile("articles", featuredImageFile)
 
   const handleFeaturedImageFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>

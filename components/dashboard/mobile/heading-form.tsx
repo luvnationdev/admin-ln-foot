@@ -1,82 +1,104 @@
 'use client'
 
-import { apiClient } from '@/lib/api-client'
 import { useUploadFile } from '@/lib/minio/upload'
-import { useSession } from 'next-auth/react'
 import type React from 'react'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react' // Added useEffect
 import { toast } from 'sonner'
+import { useHeadingControllerServicePostApiHeadings } from '@/lib/api-client/rq-generated/queries'
+import { useQueryClient } from '@tanstack/react-query'
+// Removed useSession as it's not directly used for auth token anymore
 
 export default function HeadingsPage() {
-  const { data: session } = useSession()
-
+  const queryClient = useQueryClient()
   const [title, setTitle] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState('') // For preview
   const [uploadFileInput, setUploadFileInput] = useState<File | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { uploadFile } = useUploadFile(uploadFileInput)
+  const {
+    uploadFile,
+    isUploading: isFileUploading,
+    error: fileUploadError,
+  } = useUploadFile("headings", uploadFileInput) // Use isUploading and error from hook
+
+  const createHeadingMutation = useHeadingControllerServicePostApiHeadings({
+    onSuccess: () => {
+      toast.success('Contenu créé avec succès !')
+      setTitle('')
+      setImageUrl('')
+      setUploadFileInput(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      void queryClient.invalidateQueries({ queryKey: ['headings'] }) // Assuming 'headings' is the query key for HeadingsList
+    },
+    onError: (error) => {
+      console.log(error)
+      toast.error(`Une erreur s'est produite lors de la création du contenu`)
+    },
+  })
+
+  // Effect to handle file upload errors specifically
+  useEffect(() => {
+    if (fileUploadError) {
+      toast.error(
+        `Erreur lors de l'upload de l'image: ${fileUploadError.message}`
+      )
+    }
+  }, [fileUploadError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!title || (!imageUrl && !uploadFileInput)) {
-      toast.error('Veuillez remplir tous les champs')
+      // imageUrl check can be for preview, uploadFileInput for actual file
+      toast.error('Veuillez fournir un titre et une image.')
       return
     }
 
-    setIsSubmitting(true)
     let finalThumbnailUrl = imageUrl
 
     if (uploadFileInput) {
       try {
         toast.loading('Upload de la miniature...')
-        finalThumbnailUrl = await uploadFile()
+        finalThumbnailUrl = await uploadFile() // uploadFile from hook should handle its own state
+        toast.dismiss() // Dismiss loading toast for upload
         toast.success('Image uploadée avec succès !')
       } catch (error) {
+        toast.dismiss()
         console.error('Error uploading thumbnail:', error)
-        toast.error("Erreur lors de l'upload de l'image")
-        setIsSubmitting(false)
+        if (!fileUploadError) toast.error("Erreur lors de l'upload de l'image.")
         return
       }
     }
 
-    const { data, error } = await apiClient.createHeading({
-      body: { imageUrl: finalThumbnailUrl, title },
-      headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
-      },
-    })
-
-    if (!data || error) {
-      toast.error('Erreur lors de la création du contenu')
-      setIsSubmitting(false)
+    if (!finalThumbnailUrl) {
+      // Ensure URL is present after potential upload
+      toast.error("L'URL de l'image est manquante après la tentative d'upload.")
       return
     }
-    toast.success('Contenu créé avec succès !')
 
-    setTitle('')
-    setImageUrl('')
-    setUploadFileInput(null)
-    setIsSubmitting(false)
+    createHeadingMutation.mutate({
+      requestBody: { imageUrl: finalThumbnailUrl, title },
+    })
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setUploadFileInput(file)
+      setUploadFileInput(file) // Set file for upload hook
       const reader = new FileReader()
       reader.onload = (ev) => {
-        if (ev.target?.result) {
-          setImageUrl(ev.target.result as string)
-        }
+        setImageUrl(ev.target?.result as string) // Set for preview
       }
       reader.readAsDataURL(file)
+    } else {
+      setUploadFileInput(null)
+      setImageUrl('')
     }
   }
 
-
+  const isSubmitting = createHeadingMutation.isPending || isFileUploading
 
   return (
     <div className='w-full max-w-3xl mx-auto p-6 space-y-8'>
@@ -85,7 +107,6 @@ export default function HeadingsPage() {
         className='flex flex-col sm:flex-row gap-6 justify-between space-y-6 p-4 rounded-md'
       >
         <div className='flex-1 space-y-4'>
-          {/* Title Input */}
           <div>
             <label htmlFor='title' className='block text-sm font-medium mb-1'>
               Titre
@@ -97,10 +118,10 @@ export default function HeadingsPage() {
               onChange={(e) => setTitle(e.target.value)}
               className='w-full px-3 py-2 border rounded-md'
               placeholder='Titre'
+              disabled={isSubmitting}
             />
           </div>
 
-          {/* Image URL + File Upload */}
           <div>
             <label htmlFor='image' className='block text-sm font-medium mb-1'>
               Image miniature
@@ -108,15 +129,21 @@ export default function HeadingsPage() {
             <div className='flex'>
               <input
                 type='text'
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                value={imageUrl} // Controlled by state for preview or manual input
+                onChange={(e) => {
+                  setImageUrl(e.target.value)
+                  setUploadFileInput(null) // Clear file input if URL is typed manually
+                  if (fileInputRef.current) fileInputRef.current.value = ''
+                }}
                 className='flex-grow px-3 py-2 border rounded-l-md'
                 placeholder='Lien de l’image ou sélectionner un fichier'
+                disabled={isSubmitting}
               />
               <button
                 type='button'
                 onClick={() => fileInputRef.current?.click()}
                 className='px-4 py-2 text-white bg-gray-500 rounded-r-md hover:bg-gray-600'
+                disabled={isSubmitting}
               >
                 Parcourir
               </button>
@@ -126,6 +153,7 @@ export default function HeadingsPage() {
                 ref={fileInputRef}
                 onChange={handleFileSelect}
                 className='hidden'
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -139,7 +167,7 @@ export default function HeadingsPage() {
           </button>
         </div>
 
-        {imageUrl && (
+        {imageUrl && ( // Show preview if imageUrl is set (from file or manual input)
           <div className='sm:w-1/3 flex justify-center items-start'>
             <img
               src={imageUrl}
