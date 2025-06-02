@@ -32,7 +32,7 @@ export default function AdvertisementEditor({ advertisement }: AdvertisementEdit
     }
   });
 
-  const { uploadFile } = useUploadFile(uploadFileInput);
+  const { uploadFile } = useUploadFile("advertisements", uploadFileInput);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
