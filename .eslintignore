@@ -1,0 +1,9 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore your build output directory (e.g., if you compile TS to JS)
+dist/
+build/
+
+# Ignore the directory containing your openapi-rq generated files
+lib/api-client/rq-generated/

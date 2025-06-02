@@ -63,7 +63,7 @@ export function HeadingsList() {
   return (
     <div className='grid gap-4 sm:grid-cols-2'>
       {headings?.map((heading, idx) => (
-        <div key={heading.id || idx} className='border rounded-md p-4 shadow-sm bg-white'> {/* Use heading.id for key if available */}
+        <div key={heading.id ?? idx} className='border rounded-md p-4 shadow-sm bg-white'> {/* Use heading.id for key if available */}
           <img
             src={heading.imageUrl}
             alt={heading.title}

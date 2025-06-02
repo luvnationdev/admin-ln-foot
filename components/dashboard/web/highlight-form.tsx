@@ -15,7 +15,7 @@ export default function HighlightForm() {
   const [uploadFileInput, setUploadFile] = useState<File | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFile: uploadToMinio } = useUploadFile();
+  const { uploadFile: uploadToMinio } = useUploadFile("highlights");
   
   const { mutate: createHighlight } =
     trpc.highlights.createHighlight.useMutation({

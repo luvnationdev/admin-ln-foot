@@ -14,8 +14,7 @@ interface PreviewProps {
 export default function Preview({ data }: PreviewProps) {
   const [selectedSize, setSelectedSize] = useState<string>()
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>()
-  const selectedVariant = data.variants[selectedVariantIndex ?? 0]
-  console.log('Selected product:', data)
+  const selectedVariant = data.variants?.[selectedVariantIndex ?? 0]
 
   const handleBuy = () => {
     const imageFileList = selectedVariant?.imageFile ?? []
@@ -61,10 +60,10 @@ export default function Preview({ data }: PreviewProps) {
                 />
               </div>
             )}
-            {data.variants.length > 0 && (
+            {(data.variants?.length ?? 0) > 0 && (
               <Carousel className='w-full'>
                 <CarouselContent>
-                  {data.variants.map((v, index) => (
+                  {data.variants!.map((v, index) => (
                     <CarouselItem
                       key={index}
                       className='basis-1/4 cursor-pointer'
@@ -114,25 +113,28 @@ export default function Preview({ data }: PreviewProps) {
             </div>
 
             {/* Size selection */}
-            {selectedVariant?.sizes.length > 0 || data.sizes.length > 0 ? (
+            {(selectedVariant?.sizes?.length ?? 0) > 0 ||
+            (data.sizes?.length ?? 0) > 0 ? (
               <div>
                 <span className='text-sm font-medium block mb-2'>
                   Sélectionner la taille
                 </span>
                 <div className='flex flex-wrap gap-2'>
-                  {(selectedVariant?.sizes ?? data.sizes).map((size, index) => (
-                    <span
-                      key={index}
-                      className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium cursor-pointer border ${
-                        selectedSize === size
-                          ? 'border-primary bg-white text-primary'
-                          : 'border-gray-200 bg-white text-gray-600'
-                      }`}
-                      onClick={() => setSelectedSize(size)}
-                    >
-                      {size}
-                    </span>
-                  ))}
+                  {(selectedVariant?.sizes ?? data.sizes ?? []).map(
+                    (size, index) => (
+                      <span
+                        key={index}
+                        className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium cursor-pointer border ${
+                          selectedSize === size
+                            ? 'border-primary bg-white text-primary'
+                            : 'border-gray-200 bg-white text-gray-600'
+                        }`}
+                        onClick={() => setSelectedSize(size)}
+                      >
+                        {size}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
             ) : null}

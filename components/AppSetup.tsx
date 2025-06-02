@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { registerAuthInterceptor } from '@/lib/api-client/rq-generated/auth-interceptor'; // Adjust path if necessary
+import { registerAuthInterceptor } from '@/lib/api-client/auth-interceptor'; // Adjust path if necessary
 
 export function AppSetup() {
   useEffect(() => {

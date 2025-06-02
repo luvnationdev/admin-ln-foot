@@ -9,87 +9,96 @@ import { useQueryClient } from '@tanstack/react-query'
 // Removed useSession as it's not directly used for auth token anymore
 
 export default function HeadingsPage() {
-  const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [imageUrl, setImageUrl] = useState(''); // For preview
-  const [uploadFileInput, setUploadFileInput] = useState<File | null>(null);
+  const queryClient = useQueryClient()
+  const [title, setTitle] = useState('')
+  const [imageUrl, setImageUrl] = useState('') // For preview
+  const [uploadFileInput, setUploadFileInput] = useState<File | null>(null)
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, isUploading: isFileUploading, error: fileUploadError } = useUploadFile(uploadFileInput); // Use isUploading and error from hook
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const {
+    uploadFile,
+    isUploading: isFileUploading,
+    error: fileUploadError,
+  } = useUploadFile("headings", uploadFileInput) // Use isUploading and error from hook
 
   const createHeadingMutation = useHeadingControllerServicePostApiHeadings({
     onSuccess: () => {
-      toast.success('Contenu créé avec succès !');
-      setTitle('');
-      setImageUrl('');
-      setUploadFileInput(null);
+      toast.success('Contenu créé avec succès !')
+      setTitle('')
+      setImageUrl('')
+      setUploadFileInput(null)
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = ''
       }
-      queryClient.invalidateQueries({ queryKey: ['headings'] }); // Assuming 'headings' is the query key for HeadingsList
+      void queryClient.invalidateQueries({ queryKey: ['headings'] }) // Assuming 'headings' is the query key for HeadingsList
     },
     onError: (error) => {
-      toast.error(`Erreur lors de la création du contenu: ${error.message}`);
+      console.log(error)
+      toast.error(`Une erreur s'est produite lors de la création du contenu`)
     },
-  });
+  })
 
   // Effect to handle file upload errors specifically
   useEffect(() => {
     if (fileUploadError) {
-      toast.error(`Erreur lors de l'upload de l'image: ${fileUploadError.message}`);
+      toast.error(
+        `Erreur lors de l'upload de l'image: ${fileUploadError.message}`
+      )
     }
-  }, [fileUploadError]);
+  }, [fileUploadError])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!title || (!imageUrl && !uploadFileInput)) { // imageUrl check can be for preview, uploadFileInput for actual file
-      toast.error('Veuillez fournir un titre et une image.');
-      return;
+    if (!title || (!imageUrl && !uploadFileInput)) {
+      // imageUrl check can be for preview, uploadFileInput for actual file
+      toast.error('Veuillez fournir un titre et une image.')
+      return
     }
 
-    let finalThumbnailUrl = imageUrl;
+    let finalThumbnailUrl = imageUrl
 
     if (uploadFileInput) {
       try {
-        toast.loading('Upload de la miniature...');
-        finalThumbnailUrl = await uploadFile(); // uploadFile from hook should handle its own state
-        toast.dismiss(); // Dismiss loading toast for upload
-        toast.success('Image uploadée avec succès !');
-      } catch (error) { // Error should be caught by useUploadFile hook's error state, but good to have safeguard
-        toast.dismiss();
-        console.error('Error uploading thumbnail:', error);
-        // Toast for upload error is handled by useEffect above if fileUploadError is set
-        if (!fileUploadError) toast.error("Erreur lors de l'upload de l'image.");
-        return;
+        toast.loading('Upload de la miniature...')
+        finalThumbnailUrl = await uploadFile() // uploadFile from hook should handle its own state
+        toast.dismiss() // Dismiss loading toast for upload
+        toast.success('Image uploadée avec succès !')
+      } catch (error) {
+        toast.dismiss()
+        console.error('Error uploading thumbnail:', error)
+        if (!fileUploadError) toast.error("Erreur lors de l'upload de l'image.")
+        return
       }
     }
 
-    if (!finalThumbnailUrl) { // Ensure URL is present after potential upload
-        toast.error("L'URL de l'image est manquante après la tentative d'upload.");
-        return;
+    if (!finalThumbnailUrl) {
+      // Ensure URL is present after potential upload
+      toast.error("L'URL de l'image est manquante après la tentative d'upload.")
+      return
     }
 
-    createHeadingMutation.mutate({ requestBody: { imageUrl: finalThumbnailUrl, title } });
-  };
+    createHeadingMutation.mutate({
+      requestBody: { imageUrl: finalThumbnailUrl, title },
+    })
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setUploadFileInput(file); // Set file for upload hook
-      const reader = new FileReader();
+      setUploadFileInput(file) // Set file for upload hook
+      const reader = new FileReader()
       reader.onload = (ev) => {
-        setImageUrl(ev.target?.result as string); // Set for preview
-      };
-      reader.readAsDataURL(file);
+        setImageUrl(ev.target?.result as string) // Set for preview
+      }
+      reader.readAsDataURL(file)
     } else {
-      setUploadFileInput(null);
-      // Optionally reset imageUrl if you want the preview to clear when file is deselected
-      // setImageUrl('');
+      setUploadFileInput(null)
+      setImageUrl('')
     }
-  };
+  }
 
-  const isSubmitting = createHeadingMutation.isPending || isFileUploading;
+  const isSubmitting = createHeadingMutation.isPending || isFileUploading
 
   return (
     <div className='w-full max-w-3xl mx-auto p-6 space-y-8'>
@@ -122,9 +131,9 @@ export default function HeadingsPage() {
                 type='text'
                 value={imageUrl} // Controlled by state for preview or manual input
                 onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  setUploadFileInput(null); // Clear file input if URL is typed manually
-                  if (fileInputRef.current) fileInputRef.current.value = '';
+                  setImageUrl(e.target.value)
+                  setUploadFileInput(null) // Clear file input if URL is typed manually
+                  if (fileInputRef.current) fileInputRef.current.value = ''
                 }}
                 className='flex-grow px-3 py-2 border rounded-l-md'
                 placeholder='Lien de l’image ou sélectionner un fichier'
@@ -169,5 +178,5 @@ export default function HeadingsPage() {
         )}
       </form>
     </div>
-  );
+  )
 }
