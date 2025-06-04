@@ -17,6 +17,9 @@ const openSans = Open_Sans({
 export const metadata: Metadata = {
   title: 'LNFoot admin',
   description: 'LNFoot admin platform',
+  icons: {
+    icon: '/ln.ico'
+  }
 }
 
 export default async function RootLayout({
