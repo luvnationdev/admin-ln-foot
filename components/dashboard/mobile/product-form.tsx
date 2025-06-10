@@ -16,9 +16,7 @@ import { useEffect } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
-// Removed useSession
 
-// Define a type for variant form values if not already available from ProductFormValues.variants
 export type ProductVariantFormValues = {
   id?: string
   imageFile?: FileList

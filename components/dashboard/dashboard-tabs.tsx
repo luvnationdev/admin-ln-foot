@@ -14,6 +14,7 @@ import HighlightsTable from '../tables/HighlightsTable'
 import NewsTable from '../tables/NewsTable'
 import HeadingsForm from './mobile/heading-form'
 import { ProductForm } from './mobile/product-form'
+import OrderManagement from './mobile/OrderManagement' // Corrected import
 
 type Tab = {
   id: string
@@ -41,6 +42,8 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return 'Gestion des Points Forts'
       case 'advertisements':
         return 'Gestion des Publicités'
+      case 'orders':
+        return 'Gestion des Commandes'
       default:
         return variant === 'mobile'
           ? 'Formulaire de Produits'
@@ -62,6 +65,8 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return <HighlightForm />
       case 'advertisements':
         return <AdvertisementForm />
+      case 'orders':
+        return <OrderManagement />
       default:
         return variant === 'mobile' ? <ProductForm /> : <NewsForm />
     }
@@ -84,17 +89,23 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
     }
   }
 
+  const shouldShowViewToggleButton = activeTab !== 'users' && activeTab !== 'orders';
+
+
   return (
     <div className='max-w-6xl px-4 mx-auto my-6'>
       <ContentTabs
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(newTab) => {
+          setActiveTab(newTab);
+          setShowTable(false);
+        }}
       />
 
       <div className='flex items-center justify-between my-6'>
         <h2 className='text-2xl font-bold'>{getFormTitle()}</h2>
-        {activeTab !== 'users' && (
+        {shouldShowViewToggleButton && (
           <Button variant='outline' onClick={() => setShowTable(!showTable)}>
             {showTable ? 'Afficher le formulaire' : '← Voir toutes les entrées'}
           </Button>
@@ -103,7 +114,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
 
       <div className='grid grid-cols-1 gap-8 md:grid-cols-1'>
         <div className='p-4 border rounded-md'>
-          {showTable ? renderTable() : renderForm()}
+          {(activeTab === 'orders' || !showTable) ? renderForm() : renderTable()}
         </div>
       </div>
     </div>

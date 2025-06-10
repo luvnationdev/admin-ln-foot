@@ -2,16 +2,15 @@
 
 import { useUploadFile } from '@/lib/minio/upload'
 import type React from 'react'
-import { useRef, useState, useEffect } from 'react' // Added useEffect
+import { useRef, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useHeadingControllerServicePostApiHeadings } from '@/lib/api-client/rq-generated/queries'
 import { useQueryClient } from '@tanstack/react-query'
-// Removed useSession as it's not directly used for auth token anymore
 
 export default function HeadingsPage() {
   const queryClient = useQueryClient()
   const [title, setTitle] = useState('')
-  const [imageUrl, setImageUrl] = useState('') // For preview
+  const [imageUrl, setImageUrl] = useState('')
   const [uploadFileInput, setUploadFileInput] = useState<File | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -19,10 +18,10 @@ export default function HeadingsPage() {
     uploadFile,
     isUploading: isFileUploading,
     error: fileUploadError,
-  } = useUploadFile("headings", uploadFileInput) // Use isUploading and error from hook
+  } = useUploadFile("headings", uploadFileInput)
 
   const createHeadingMutation = useHeadingControllerServicePostApiHeadings({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Contenu créé avec succès !')
       setTitle('')
       setImageUrl('')
@@ -30,7 +29,7 @@ export default function HeadingsPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-      void queryClient.invalidateQueries({ queryKey: ['headings'] }) // Assuming 'headings' is the query key for HeadingsList
+      await queryClient.invalidateQueries({ queryKey: ['headings'] }) // Assuming 'headings' is the query key for HeadingsList
     },
     onError: (error) => {
       console.log(error)
@@ -38,7 +37,6 @@ export default function HeadingsPage() {
     },
   })
 
-  // Effect to handle file upload errors specifically
   useEffect(() => {
     if (fileUploadError) {
       toast.error(
@@ -73,7 +71,6 @@ export default function HeadingsPage() {
     }
 
     if (!finalThumbnailUrl) {
-      // Ensure URL is present after potential upload
       toast.error("L'URL de l'image est manquante après la tentative d'upload.")
       return
     }
@@ -86,10 +83,10 @@ export default function HeadingsPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setUploadFileInput(file) // Set file for upload hook
+      setUploadFileInput(file)
       const reader = new FileReader()
       reader.onload = (ev) => {
-        setImageUrl(ev.target?.result as string) // Set for preview
+        setImageUrl(ev.target?.result as string)
       }
       reader.readAsDataURL(file)
     } else {
