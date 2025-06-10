@@ -1,11 +1,10 @@
 // components/dashboard/mobile/OrderCard.tsx
 'use client'
 
-import React, { useState } from 'react'; // Removed Fragment
+import React, { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import OrderItemDetails from './OrderItemDetails';
 
-// Interfaces (Order, OrderItem)
 export interface OrderItem {
   id: string;
   productVariantId: string;
@@ -30,9 +29,8 @@ interface OrderCardProps {
   orderStatuses: string[];
 }
 
-// Helper function to get status colors
 const getStatusClasses = (status?: string): string => {
-  if (!status) return 'bg-gray-100 text-gray-800 border-gray-300'; // Default/Unknown
+  if (!status) return 'bg-gray-100 text-gray-800 border-gray-300';
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-yellow-100 text-yellow-800 border-yellow-300';
@@ -51,6 +49,7 @@ const getStatusClasses = (status?: string): string => {
 
 const OrderCard: React.FC<OrderCardProps> = ({ order, handleUpdateStatus, isUpdatingStatus, orderStatuses }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const orderItemsId = `order-items-${order.id}`; // Generate ID for aria-controls
 
   const toggleOrderItems = () => {
     setIsExpanded(!isExpanded);
@@ -63,8 +62,14 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, handleUpdateStatus, isUpda
       <div className='grid grid-cols-1 md:grid-cols-5 gap-4 items-start'>
         <div className='md:col-span-4 space-y-1'>
           <div className='flex items-center mb-2'>
-            <button onClick={toggleOrderItems} className="mr-2 p-1 hover:bg-gray-100 rounded focus:outline-none">
+            <button
+              onClick={toggleOrderItems}
+              className="mr-2 p-1 hover:bg-gray-100 rounded focus:outline-none"
+              aria-expanded={isExpanded} // Changed to boolean, React handles string conversion
+              aria-controls={orderItemsId}
+            >
               {isExpanded ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
+              <span className="sr-only">{isExpanded ? 'Collapse order items' : 'Expand order items'}</span>
             </button>
             <h3 className='text-lg font-semibold'>Order ID: {order.id}</h3>
           </div>
@@ -96,7 +101,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, handleUpdateStatus, isUpda
         </div>
       </div>
       {isExpanded && (
-        <div className='mt-4 pt-4 border-t'>
+        <div
+          className='mt-4 pt-4 border-t'
+          id={orderItemsId} // ID for aria-controls
+        >
           <h4 className='text-md font-semibold mb-2'>Order Items:</h4>
           {order.orderItems && order.orderItems.length > 0 ? (
             <div className='space-y-2'>

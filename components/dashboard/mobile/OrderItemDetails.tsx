@@ -4,10 +4,8 @@
 import React from 'react';
 import {
     useProductVariantControllerServiceGetProductVariantById,
-    useProductControllerServiceGetProductById // Import hook for fetching product by ID
+    useProductControllerServiceGetProductById
 } from '@/lib/api-client/rq-generated/queries';
-// ProductVariantDto and ProductDto can be imported for explicit typing if desired
-// import type { ProductVariantDto, ProductDto } from '@/lib/api-client/rq-generated/requests/types.gen';
 
 interface OrderItem {
   id: string;
@@ -31,15 +29,14 @@ const OrderItemDetails: React.FC<OrderItemDetailsProps> = ({ item }) => {
     { query: { enabled: !!item.productVariantId } }
   );
 
-  // Fetch product details using productId from variantDetails
   const productId = variantDetails?.productId;
   const {
     data: productDetails,
     isLoading: isLoadingProduct,
     error: productError,
   } = useProductControllerServiceGetProductById(
-    { id: productId! }, // The '!' asserts productId is non-null, enabled flag handles undefined
-    { query: { enabled: !!productId } } // Only run if productId is available
+    { id: productId }, // Removed non-null assertion: productId! -> productId
+    { query: { enabled: !!productId } }
   );
 
   if (isLoadingVariant) return <p className='text-sm text-gray-500 p-2'>Loading variant details...</p>;
@@ -56,7 +53,6 @@ const OrderItemDetails: React.FC<OrderItemDetailsProps> = ({ item }) => {
     );
   }
 
-  // Determine the display name for the product
   let productNameDisplay = `Variant (ID: ${item.productVariantId})`;
   if (isLoadingProduct && variantDetails) {
       productNameDisplay = `Product (ID: ${variantDetails.productId}) / Variant (ID: ${item.productVariantId}) - Loading name...`;
@@ -65,10 +61,9 @@ const OrderItemDetails: React.FC<OrderItemDetailsProps> = ({ item }) => {
       productNameDisplay = `Product (ID: ${variantDetails.productId}) - Error loading name / Variant (ID: ${item.productVariantId})`;
   } else if (productDetails) {
       productNameDisplay = `${productDetails.name || 'Unknown Product'} (Variant ID: ${item.productVariantId})`;
-  } else if (variantDetails?.productId) { // Fallback if productDetails somehow not loaded but productId exists
+  } else if (variantDetails?.productId) {
       productNameDisplay = `Product (ID: ${variantDetails.productId}) / Variant (ID: ${item.productVariantId})`;
   }
-
 
   return (
     <div className='text-sm p-3 bg-gray-50 rounded shadow-md border border-gray-200'>

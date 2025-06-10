@@ -2,23 +2,22 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PostEditor from './PostEditor'; // Assuming PostEditor is the main export, changed from {PostEditor}
-import { trpc } from '@/lib/trpc/react'; // For tRPC hook mocking
+import PostEditor from './PostEditor'; // Changed from {PostEditor} to default import
+import { trpc } from '@/lib/trpc/react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
-// Assuming useUploadFile is the hook for uploads, adjust if it's useUploadThing or other
-// The actual component uses direct FileReader, not a hook like useUploadFile for the featured image.
-// So, useUploadFile mock might not be directly relevant for the featured image part.
+// useUploadFile is not directly used by the component's handleImageUpload for featured image,
+// it uses FileReader directly. So, this mock might be for other potential image uploads or can be removed if not relevant.
+// import { useUploadFile } from '@/lib/minio/upload';
 
 // --- Mocks ---
 jest.mock('@/lib/trpc/react', () => ({
   trpc: {
-    newsArticles: { // Assuming it's newsArticles based on component's usage
+    newsArticles: { // Corrected based on component's usage
       createNewsArticle: {
         useMutation: jest.fn(),
       },
     },
-    // Mock other trpc hooks if PostEditor uses them
   },
 }));
 
@@ -32,15 +31,15 @@ jest.mock('sonner', () => ({
 }));
 
 jest.mock('dompurify', () => ({
-  sanitize: jest.fn((html) => html), // Simple pass-through mock, just to check it's called
+  sanitize: jest.fn((html) => html),
 }));
 
-// Mock the Tiptap editor
+// Mock the Tiptap editor instance
 const mockEditor = {
   getHTML: jest.fn(() => '<p>Test editor content</p>'),
-  getText: jest.fn(() => 'Test editor content'), // Added for completeness, though not directly tested here
-  isEmpty: false, // Default to not empty
-  commands: { // Mocking commands object and its methods
+  getText: jest.fn(() => 'Test editor content'),
+  isEmpty: false,
+  commands: {
     setContent: jest.fn().mockReturnThis(),
     focus: jest.fn().mockReturnThis(),
     clearContent: jest.fn().mockReturnThis(),
@@ -49,10 +48,10 @@ const mockEditor = {
     toggleBulletList: jest.fn().mockReturnThis(),
     toggleOrderedList: jest.fn().mockReturnThis(),
     setImage: jest.fn().mockReturnThis(),
-    run: jest.fn().mockReturnThis(), // chainable methods usually end with run()
+    run: jest.fn().mockReturnThis(),
   },
-  chain: jest.fn().mockReturnThis(), // Mock chain to return 'this' (the mockEditor.commands)
-  isActive: jest.fn(() => false), // Default for isActive
+  chain: jest.fn().mockReturnThis(),
+  isActive: jest.fn(() => false),
   destroy: jest.fn(),
   isDestroyed: false,
   isEditable: true,
@@ -61,16 +60,33 @@ const mockEditor = {
   setOptions: jest.fn(),
 };
 
-
+// Updated EditorContent mock
 jest.mock('@tiptap/react', () => ({
   ...jest.requireActual('@tiptap/react'),
   useEditor: jest.fn(() => mockEditor),
-  EditorContent: jest.fn(({ editor }) => <div data-testid="editor-content" dangerouslySetInnerHTML={{ __html: editor?.getHTML() }}></div>),
+  EditorContent: jest.fn(() => <div data-testid="mock-editor-content">Mocked Editor Content</div>), // Simplified mock
 }));
+
+// This mock might not be needed if useUploadFile is not used for the featured image.
+// The component uses FileReader for the featured image preview.
+// jest.mock('@/lib/minio/upload', () => ({
+//   useUploadFile: jest.fn(),
+// }));
+// const mockUseUploadFile = useUploadFile as jest.Mock;
+// const mockUploadFileFn = jest.fn();
 
 
 const mockCreateNewsArticleMutation = trpc.newsArticles.createNewsArticle.useMutation as jest.Mock;
-const mockMutateFn = jest.fn(); // Renamed from mockMutateAsync for clarity as it's part of the hook's return
+// Renamed from mockMutateAsync to mockMutateFn for clarity, matching component's useMutation return
+const mockMutateFn = jest.fn();
+
+// Define a more specific type for the FileReader mock
+interface MockFileReader {
+    readAsDataURL: jest.Mock<void, [File]>;
+    onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null;
+    onerror: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null;
+    result: string | ArrayBuffer | null;
+}
 
 
 // --- Test Suite ---
@@ -78,63 +94,59 @@ describe('PostEditor Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEditor.getHTML.mockReturnValue('<p>Test editor content</p>');
-    mockEditor.isEmpty = false; // Reset isEmpty
+    mockEditor.getText.mockReturnValue('Test editor content');
+    mockEditor.isEmpty = false;
 
-    // Setup default mock return for the mutation hook
     mockCreateNewsArticleMutation.mockReturnValue({
-      mutate: mockMutateFn, // use 'mutate' as per tRPC v10+ standard
+      // The hook returns 'mutate' or 'mutateAsync', and 'isLoading'.
+      // 'onSuccess' and 'onError' are part of the options passed to useMutation.
+      mutate: mockMutateFn,
       isLoading: false,
-      // onSuccess and onError are part of useMutation options, not typically returned directly unless structured so
     });
+
+    // If useUploadFile was used for featured image, this would be relevant.
+    // mockUseUploadFile.mockReturnValue({
+    //     uploadFile: mockUploadFileFn,
+    //     isUploading: false,
+    //     error: null,
+    // });
+    // mockUploadFileFn.mockResolvedValue('http://example.com/uploaded-image.jpg');
   });
 
-  // Test DOMPurify Integration
   test('sanitizes editor HTML content using DOMPurify for preview', async () => {
     render(<PostEditor />);
-    // Switch to preview tab
     const previewTabTrigger = screen.getByRole('tab', { name: /Prévisualiser/i });
     fireEvent.click(previewTabTrigger);
 
-    // Wait for the preview content to render, which should trigger sanitize
     await waitFor(() => {
+      // The preview div in PostEditor uses editor.getHTML()
+      // So, DOMPurify.sanitize should be called with its result.
       expect(DOMPurify.sanitize).toHaveBeenCalledWith('<p>Test editor content</p>');
     });
   });
 
-  // Tests for handleImageUpload
   describe('handleImageUpload', () => {
-    // Helper to get the file input; assuming it's an invisible input triggered by a clickable div
-    const getFileInputAndTriggerClick = (container: HTMLElement) => {
-        const clickableDiv = container.querySelector('.border-2.border-dashed'); // More specific selector if possible
-        if (!clickableDiv) throw new Error("Clickable div for file input not found");
-        fireEvent.click(clickableDiv); // This should internally call fileInputRef.current.click()
-        // The actual input is harder to get directly if .click() is on a ref.
-        // Let's assume the input is findable by its 'type=file' attribute for change event.
-        return screen.getByRole('textbox', { hidden: true }) as HTMLInputElement; // This is how Next.js renders file inputs
-    };
-
+    // Helper to get the file input
+    const getFileInput = () => document.querySelector('input[type="file"]') as HTMLInputElement;
 
     test('successfully processes a valid image file', async () => {
       render(<PostEditor />);
-      // The input is hidden, so we target the clickable area then the input for the change event
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const fileInput = getFileInput();
       if (!fileInput) throw new Error("File input not found");
-
       const file = new File(['dummy_content'], 'test.png', { type: 'image/png', size: 1024 });
 
-      // Simulate file selection
       await fireEvent.change(fileInput, { target: { files: [file] } });
 
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('Image uploaded successfully!');
       });
-      // Also check if the image is displayed (optional, but good)
+      // Check if the image is displayed (via its alt text)
       expect(screen.getByAltText('Featured')).toBeInTheDocument();
     });
 
     test('rejects invalid file type with a toast error', async () => {
       render(<PostEditor />);
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const fileInput = getFileInput();
       if (!fileInput) throw new Error("File input not found");
       const file = new File(['dummy_content'], 'test.txt', { type: 'text/plain', size: 1024 });
 
@@ -148,9 +160,8 @@ describe('PostEditor Component', () => {
 
     test('rejects file exceeding max size with a toast error', async () => {
       render(<PostEditor />);
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const fileInput = getFileInput();
       if (!fileInput) throw new Error("File input not found");
-
       const maxSize = 2 * 1024 * 1024;
       const file = new File(['dummy_content'], 'large.png', { type: 'image/png', size: maxSize + 1 });
 
@@ -163,40 +174,40 @@ describe('PostEditor Component', () => {
     });
 
     test('handles FileReader error with a toast', async () => {
-        const mockReaderInstance = {
+        const mockReaderInstance: MockFileReader = {
             readAsDataURL: jest.fn(),
-            onload: null as ((event: ProgressEvent<FileReader>) => void) | null,
-            onerror: null as (() => void) | null,
+            onload: null,
+            onerror: null,
             result: '',
         };
-        jest.spyOn(window, 'FileReader').mockImplementation(() => mockReaderInstance as any);
+        const fileReaderSpy = jest.spyOn(window, 'FileReader').mockImplementation(() => mockReaderInstance as unknown as FileReader);
 
         render(<PostEditor />);
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const fileInput = getFileInput();
         if (!fileInput) throw new Error("File input not found");
         const file = new File(['dummy'], 'test.png', { type: 'image/png' });
 
         await fireEvent.change(fileInput, { target: { files: [file] } });
 
         expect(mockReaderInstance.readAsDataURL).toHaveBeenCalledWith(file);
-        // Manually trigger onerror
+
         if(mockReaderInstance.onerror) {
-            mockReaderInstance.onerror();
+            mockReaderInstance.onerror.call(mockReaderInstance as unknown as FileReader, new ProgressEvent('error'));
         }
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith('Failed to read file. Please try again.');
         });
         expect(fileInput.value).toBe('');
+        fileReaderSpy.mockRestore();
     });
   });
 
-  // Tests for Form Submission (handleSave / createNewsArticle)
   describe('Form Submission (handleSave)', () => {
     test('shows toast error if title is empty', async () => {
       render(<PostEditor />);
-      const titleInput = screen.getByPlaceholderText("Titre de l'article") as HTMLInputElement;
-      fireEvent.change(titleInput, {target: {value: '  '}}); // Empty or whitespace title
+      const titleInput = screen.getByPlaceholderText("Titre de l'article");
+      fireEvent.change(titleInput, {target: {value: '  '}}); // Empty or whitespace
 
       const saveButton = screen.getByRole('button', { name: /Enregistrer/i });
       fireEvent.click(saveButton);
@@ -207,17 +218,43 @@ describe('PostEditor Component', () => {
       expect(mockMutateFn).not.toHaveBeenCalled();
     });
 
-    // Test for editor not initialized is tricky if useEditor always returns a mock.
-    // Assuming editor is always initialized by the mock.
+    // Test for empty editor content (if component adds this validation)
+    // The current component code does not explicitly validate for empty editor content client-side before mutation.
+    // It sends editor.getHTML() which could be empty (e.g., "<p></p>" or "").
+    // If such validation were added, a test like this would be relevant:
+    /*
+    test('shows toast error if editor content is empty', async () => {
+      mockEditor.getHTML.mockReturnValueOnce(''); // Or "<p></p>" depending on "empty"
+      // mockEditor.isEmpty = true; // If using editor.isEmpty for validation
+      render(<PostEditor />);
+
+      const titleInput = screen.getByPlaceholderText("Titre de l'article");
+      fireEvent.change(titleInput, {target: {value: 'Valid Title'}});
+
+      const saveButton = screen.getByRole('button', { name: /Enregistrer/i });
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Content cannot be empty.'); // Or similar message
+      });
+      expect(mockMutateFn).not.toHaveBeenCalled();
+    });
+    */
 
     test('calls createNewsArticle mutation on successful validation', async () => {
-      // Default mockCreateNewsArticleMutation setup in beforeEach already handles success case by default
-      // We need to define what mockMutateFn resolves to for the onSuccess callback in the component
-      // The component's onSuccess expects data with a 'title' property.
-      mockMutateFn.mockImplementation((variables) => {
-        const { onSuccess } = mockCreateNewsArticleMutation.mock.calls[0][0]; // Get options passed to useMutation
-        onSuccess({ title: variables.title }); // Simulate successful call by invoking onSuccess
-        return Promise.resolve({ title: variables.title });
+      // This test needs to simulate how onSuccess is called from the component
+      // The component defines onSuccess inside useMutation options.
+      // So, we get the options from the mock, then call its onSuccess.
+      mockCreateNewsArticleMutation.mockImplementationOnce((options: any) => {
+        return {
+          mutate: mockMutateFn.mockImplementationOnce((variables) => {
+            // Simulate successful API call and then trigger component's onSuccess
+            if (options.onSuccess) {
+              options.onSuccess({ title: variables.title }); // Pass data expected by onSuccess
+            }
+          }),
+          isLoading: false,
+        };
       });
 
       render(<PostEditor />);
@@ -228,6 +265,9 @@ describe('PostEditor Component', () => {
       const excerptInput = screen.getByPlaceholderText("Résumé de l'article");
       fireEvent.change(excerptInput, {target: {value: 'Awesome summary'}});
 
+      // Assuming featuredImage state would be set by handleImageUpload in a real scenario
+      // For this test, it will be an empty string if not uploaded.
+
       const saveButton = screen.getByRole('button', { name: /Enregistrer/i });
       fireEvent.click(saveButton);
 
@@ -236,17 +276,23 @@ describe('PostEditor Component', () => {
           title: 'My Awesome Article',
           content: '<p>Test editor content</p>',
           summary: 'Awesome summary',
+          imageUrl: '', // As featuredImage state is initially ""
         }));
-        // Check toast from component's onSuccess
         expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Article "My Awesome Article" created successfully!'));
       });
     });
 
     test('shows error toast if createNewsArticle mutation fails', async () => {
-       mockMutateFn.mockImplementation((variables) => {
-        const { onError } = mockCreateNewsArticleMutation.mock.calls[0][0]; // Get options
-        onError(new Error('API Error')); // Simulate error by invoking onError
-        return Promise.reject(new Error('API Error'));
+      mockCreateNewsArticleMutation.mockImplementationOnce((options: any) => {
+        return {
+          mutate: mockMutateFn.mockImplementationOnce(() => {
+            // Simulate failed API call and then trigger component's onError
+            if (options.onError) {
+              options.onError(new Error('API Error'));
+            }
+          }),
+          isLoading: false,
+        };
       });
       render(<PostEditor />);
 
@@ -263,18 +309,17 @@ describe('PostEditor Component', () => {
     });
 
     test('submit button is disabled and shows loading text during mutation', async () => {
-      mockCreateNewsArticleMutation.mockReturnValueOnce({
-        mutate: mockMutateFn,
-        isLoading: true, // Simulate loading state
+       mockCreateNewsArticleMutation.mockReturnValueOnce({
+        mutate: mockMutateFn, // or jest.fn() if not testing its call
+        isLoading: true,
       });
       render(<PostEditor />);
 
+      // Title input needs to be valid for the save button to be enabled before isLoading state
       const titleInput = screen.getByPlaceholderText("Titre de l'article");
       fireEvent.change(titleInput, {target: {value: 'Loading State Article'}});
 
-      // Check button text and disabled state
       const saveButton = screen.getByRole('button', { name: /Enregistrement.../i });
-      expect(saveButton).toBeInTheDocument();
       expect(saveButton).toBeDisabled();
     });
   });
