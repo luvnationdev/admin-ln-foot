@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Edit2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "../../ui/badge";
+import { Badge } from "../ui/badge";
 import { trpc } from "@/lib/trpc/react";
 
 export default function PostEditor() {

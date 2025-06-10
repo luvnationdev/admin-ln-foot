@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import PostEditor from "@/components/lists/Posts/PostEditor";
+import PostEditor from "@/components/Posts/PostEditor";
 
 export default function PostsForm() {
   return (
