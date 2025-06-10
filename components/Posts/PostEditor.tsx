@@ -17,6 +17,8 @@ import { Eye, Edit2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "../ui/badge";
 import { trpc } from "@/lib/trpc/react";
+import DOMPurify from 'dompurify'; // Import DOMPurify
+import { toast } from 'sonner'; // Import toast
 
 export default function PostEditor() {
   const [title, setTitle] = useState("");
@@ -45,16 +47,58 @@ export default function PostEditor() {
     immediatelyRender: false,
   });
 
-  const { mutate: createNewsArticle } =
-    trpc.newsArticles.createNewsArticle.useMutation();
+  const { mutate: createNewsArticle, isLoading: isCreatingArticle } = // Added isLoading
+    trpc.newsArticles.createNewsArticle.useMutation({
+      onSuccess: (data) => {
+        toast.success(`Article "${data.title}" created successfully! ` + (autoPublish ? "It will be published automatically." : ""));
+        // Optionally, reset form fields here if needed
+        // setTitle("");
+        // setExcerpt("");
+        // setFeaturedImage("");
+        // editor?.commands.clearContent();
+        // setAutoPublish(false);
+      },
+      onError: (error) => {
+        toast.error(`Failed to create article: ${error.message}`);
+        console.error("Error creating article:", error);
+      },
+    });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // File type validation
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Invalid file type. Please select a JPEG, PNG, GIF, or WEBP image.');
+        if (fileInputRef.current) { // Clear the file input
+            fileInputRef.current.value = "";
+        }
+        return;
+      }
+
+      // File size validation (max 2MB)
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+      if (file.size > maxSize) {
+        toast.error('File is too large. Maximum size is 2MB.');
+        if (fileInputRef.current) { // Clear the file input
+            fileInputRef.current.value = "";
+        }
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           setFeaturedImage(event.target.result as string);
+          toast.success('Image uploaded successfully!');
+        }
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read file. Please try again.');
+        console.error('FileReader error');
+        if (fileInputRef.current) { // Clear the file input
+            fileInputRef.current.value = "";
         }
       };
       reader.readAsDataURL(file);
@@ -62,31 +106,31 @@ export default function PostEditor() {
   };
 
   const handleSave = () => {
-    const content = editor?.getHTML();
-    console.log({
-      title,
-      excerpt,
-      featuredImage,
-      content,
-      author,
-      autoPublish,
-    });
+    if (!editor) {
+      toast.error("Editor is not initialized.");
+      return;
+    }
+    if (!title.trim()) {
+      toast.error("Title is required.");
+      return;
+    }
+    // Add more validations as needed for excerpt, content, etc.
 
-    // On doit changer ca par l'api des Posts (qui n'a pas encore ete implemetes)
+    const content = editor.getHTML();
+
+    // The comment below suggests this might be a placeholder.
+    // For now, we proceed with the existing `createNewsArticle` tRPC mutation.
+    // // On doit changer ca par l'api des Posts (qui n'a pas encore ete implemetes)
     createNewsArticle({
       title,
-      content: content ?? "",
+      content: content ?? "", // Ensure content is not null
       summary: excerpt,
-      imageUrl: featuredImage ?? "",
-      sourceUrl: "", // Vous pouvez ajouter une URL de source si nécessaire
-      apiSource: author,
-      apiNewsId: "", // Vous pouvez ajouter un ID d'article si nécessaire
+      imageUrl: featuredImage ?? "", // Ensure imageUrl is not null
+      sourceUrl: "", // Placeholder for source URL
+      apiSource: author, // Placeholder for API source (author)
+      apiNewsId: "", // Placeholder for API News ID
+      // publishedAt: autoPublish ? new Date() : null, // Example if your schema supports scheduled/auto publishing
     });
-
-    alert(
-      "Article enregistré!" +
-        (autoPublish ? " Il sera publié automatiquement." : ""),
-    );
   };
 
   return (
@@ -270,7 +314,7 @@ export default function PostEditor() {
                 ) : (
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: editor?.getHTML() ?? "",
+                      __html: editor ? DOMPurify.sanitize(editor.getHTML()) : "",
                     }}
                   ></div>
                 )}
@@ -310,8 +354,9 @@ export default function PostEditor() {
           <Button
             onClick={handleSave}
             className="bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+            disabled={isCreatingArticle} // Disable button while creating
           >
-            Enregistrer
+            {isCreatingArticle ? "Enregistrement..." : "Enregistrer"}
           </Button>
         </div>
       </div>
