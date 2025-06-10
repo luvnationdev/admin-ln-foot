@@ -1,19 +1,21 @@
 'use client'
 
-import { useQueryClient } from '@tanstack/react-query'
+import React, { useState, useEffect, Fragment } from 'react'
 import { useSession } from 'next-auth/react'
-import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
 import {
   useOrderControllerServiceGetApiOrders,
   useOrderControllerServicePutApiOrdersById,
 } from '@/lib/api-client/rq-generated/queries'
+import { type OrderDto } from '@/lib/api-client/rq-generated/requests'
 
-// Actual statuses might come from API or a predefined constant list
 const orderStatuses = [
   'pending',
   'completed',
+  'Shipped',
   'delivered',
   'cancelled',
 ]
@@ -21,6 +23,9 @@ const orderStatuses = [
 export default function OrderManagement() {
   const { data: session, status: sessionStatus } = useSession()
   const queryClient = useQueryClient()
+  const [expandedOrderItems, setExpandedOrderItems] = useState<
+    Record<string, boolean>
+  >({})
 
   const isAdmin = session?.user?.roles?.includes('admin')
 
@@ -50,32 +55,45 @@ export default function OrderManagement() {
     }
   }, [ordersError])
 
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateStatus = async (order: OrderDto, newStatus: string) => {
     if (!isAdmin) {
       toast.error('Permission denied.')
       return
     }
 
-    // Find the original order to send the full DTO, as PUT expects the whole object
-    const orderToUpdate = ordersData?.find((o) => o.id === orderId)
-    if (!orderToUpdate) {
-      toast.error('Order not found for update.')
+    // Restrict cancellation to "Pending" status only
+    if (newStatus === 'Cancelled' && order.status !== 'Pending') {
+      toast.error(
+        'Orders can only be cancelled if they are in "Pending" status.'
+      )
+      return
+    }
+
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to change the status of order ${order.id} from "${order.status}" to "${newStatus}"?`
+    )
+    if (!confirmed) {
+      // If not confirmed, and if the select element is controlled,
+      // you might need to reset its value to order.status here.
+      // For this basic example, we assume the visual change might momentarily occur
+      // but the actual update won't proceed. A more robust UI would control the select.
       return
     }
 
     const updatedOrderPayload = {
-      ...orderToUpdate,
+      ...order, // Spread all existing fields from the fetched order
       status: newStatus,
     }
 
-    // The generated hook for PUT /api/orders/{id} likely expects { id: string, requestBody: OrderDto }
-    // The 'requestBody' should match the OrderDto structure from your OpenAPI spec.
-    // Make sure all required fields of OrderDto are included.
-    // For this example, we assume orderToUpdate (with modified status) is a valid OrderDto.
     updateOrderMutation.mutate({
-      id: orderId,
+      id: order.id!,
       requestBody: updatedOrderPayload,
-    }) // Cast as 'any' if type is complex or not perfectly matching generated types
+    })
+  }
+
+  const toggleOrderItems = (orderId: string) => {
+    setExpandedOrderItems((prev) => ({ ...prev, [orderId]: !prev[orderId] }))
   }
 
   if (sessionStatus === 'loading') {
@@ -96,58 +114,108 @@ export default function OrderManagement() {
       {ordersData && ordersData.length === 0 ? (
         <p>No orders found.</p>
       ) : (
-        <table className='min-w-full bg-white border'>
-          <thead>
-            <tr>
-              <th className='py-2 px-4 border-b'>Order ID</th>
-              <th className='py-2 px-4 border-b'>
-                Customer (Delivery Address)
-              </th>
-              <th className='py-2 px-4 border-b'>Order Date</th>
-              <th className='py-2 px-4 border-b'>Total Amount</th>
-              <th className='py-2 px-4 border-b'>Status</th>
-              <th className='py-2 px-4 border-b'>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordersData?.map((order) => (
-              <tr key={order.id}>
-                <td className='py-2 px-4 border-b'>{order.id}</td>
-                <td className='py-2 px-4 border-b'>
-                  {order.deliveryAddress ?? 'N/A'}
-                </td>
-                <td className='py-2 px-4 border-b'>
-                  {order.orderDate
-                    ? new Date(order.orderDate).toLocaleDateString()
-                    : 'N/A'}
-                </td>
-                <td className='py-2 px-4 border-b'>
-                  {order.totalAmount?.toFixed(2) ?? 'N/A'}
-                </td>
-                <td className='py-2 px-4 border-b'>{order.status ?? 'N/A'}</td>
-                <td className='py-2 px-4 border-b'>
-                  <select
-                    value={order.status ?? ''}
-                    onChange={(e) =>
-                      handleUpdateStatus(order.id ?? '', e.target.value)
-                    }
-                    className='p-1 border rounded'
-                    disabled={
-                      updateOrderMutation.isPending &&
-                      updateOrderMutation.variables?.id === order.id
-                    }
-                  >
-                    {orderStatuses.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className='space-y-2'>
+          {ordersData?.map((order) => (
+            <Fragment key={order.id}>
+              <div className='bg-white border rounded-md p-4'>
+                <div className='grid grid-cols-5 gap-4 items-center'>
+                  <div className='col-span-4'>
+                    <div className='flex items-center'>
+                      <button
+                        onClick={() => toggleOrderItems(order.id ?? '')}
+                        className='mr-2 p-1 hover:bg-gray-100 rounded'
+                      >
+                        {expandedOrderItems[order.id ?? ''] ? (
+                          <ChevronUpIcon size={20} />
+                        ) : (
+                          <ChevronDownIcon size={20} />
+                        )}
+                      </button>
+                      <div>
+                        <strong>ID:</strong> {order.id}
+                      </div>
+                    </div>
+                    <div>
+                      <strong>Customer (Address):</strong>{' '}
+                      {order.deliveryAddress ?? 'N/A'}
+                    </div>
+                     <div>
+                      <strong>Delivery Fee:</strong>{' '}
+                      {order.deliveryFee ?? 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Date:</strong>{' '}
+                      {order.orderDate
+                        ? new Date(order.orderDate).toLocaleDateString()
+                        : 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Total:</strong>{' '}
+                      {order.totalAmount?.toFixed(2) ?? 'N/A'} FCFA
+                    </div>
+                    <div>
+                      <strong>Status:</strong> {order.status ?? 'N/A'}
+                    </div>
+                  </div>
+                  <div className='col-span-1'>
+                    <select
+                      value={order.status ?? ''}
+                      onChange={(e) =>
+                        handleUpdateStatus(order, e.target.value)
+                      }
+                      className='p-2 border rounded w-full'
+                      disabled={
+                        updateOrderMutation.isPending &&
+                        updateOrderMutation.variables?.id === order.id
+                      }
+                    >
+                      {orderStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {expandedOrderItems[order.id ?? ''] && (
+                  <div className='mt-3 pt-3 border-t'>
+                    <h4 className='text-md font-semibold mb-2'>Order Items:</h4>
+                    {order.orderItems && order.orderItems.length > 0 ? (
+                      <ul className='space-y-1 pl-4'>
+                        {order.orderItems.map((item) => (
+                          <li
+                            key={item.id}
+                            className='text-sm p-1 bg-gray-50 rounded'
+                          >
+                            <div>
+                              <strong>Variant ID:</strong>{' '}
+                              {item.productVariantId}
+                            </div>
+                            {/* TODO: Fetch and display more product variant details here (e.g., name, color) */}
+                            <div>
+                              <strong>Quantity:</strong> {item.quantity}
+                            </div>
+                            <div>
+                              <strong>Size:</strong> {item.size ?? 'N/A'}
+                            </div>
+                            <div>
+                              <strong>Price/Item:</strong>{' '}
+                              {item.price?.toFixed(2) ?? 'N/A'} FCFA
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className='text-sm text-gray-500'>
+                        No items in this order.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Fragment>
+          ))}
+        </div>
       )}
     </div>
   )
