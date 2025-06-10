@@ -6,6 +6,7 @@ import {
   useProductControllerServiceGetApiProductsById,
 } from '@/lib/api-client/rq-generated/queries'
 import type { OrderItemDto } from '@/lib/api-client/rq-generated/requests'
+import { isValidColorCode, isValidImageUrl } from '@/lib/utils'
 
 interface OrderItemDetailsProps {
   item: OrderItemDto
@@ -80,7 +81,7 @@ const OrderItemDetails: React.FC<OrderItemDetailsProps> = ({ item }) => {
     <div className='text-sm p-3 bg-gray-50 rounded shadow-md border border-gray-200'>
       <p className='font-semibold'>{productNameDisplay}</p>
 
-      {variantDetails?.imageUrl && (
+      {variantDetails?.imageUrl && isValidImageUrl(variantDetails.imageUrl) && (
         <img
           src={variantDetails.imageUrl}
           alt={
@@ -97,11 +98,16 @@ const OrderItemDetails: React.FC<OrderItemDetailsProps> = ({ item }) => {
           <span className='mr-2'>
             <strong>Color:</strong>
           </span>
-          <div
-            className='w-5 h-5 rounded-full border'
-            style={{ backgroundColor: variantDetails.colorCode }}
-            title={variantDetails.colorCode}
-          />
+          {isValidColorCode(variantDetails.colorCode) ? (
+            <div
+              className='w-5 h-5 rounded-full border'
+              style={{ backgroundColor: variantDetails.colorCode }}
+              title={variantDetails.colorCode}
+              aria-label={`Color: ${variantDetails.colorCode}`}
+            />
+          ) : (
+            <div className='w-5 h-5 rounded-full border bg-gray-200' />
+          )}
           <span className='ml-2'>{variantDetails.colorCode}</span>
         </div>
       )}

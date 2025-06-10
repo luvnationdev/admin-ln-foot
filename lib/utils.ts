@@ -61,3 +61,21 @@ export function getMinioObjectPublicUrl(endpoint: string, objectPath: string) {
     ? `https://${endpoint}/${objectPath}`
     : `http://${endpoint}:9000/${objectPath}`
 }
+
+export function isValidColorCode(colorCode: string): boolean {
+  // Check if the color code is a valid hex code
+  const hexRegex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/
+  return hexRegex.test(colorCode)
+}
+
+export function isValidImageUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url)
+    return (
+      ['http:', 'https:'].includes(parsedUrl.protocol) &&
+      /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url)
+    )
+  } catch {
+    return false
+  }
+}
