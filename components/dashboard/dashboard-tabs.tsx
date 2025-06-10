@@ -14,7 +14,7 @@ import HighlightsTable from '../tables/HighlightsTable'
 import NewsTable from '../tables/NewsTable'
 import HeadingsForm from './mobile/heading-form'
 import { ProductForm } from './mobile/product-form'
-import OrderManagement from './mobile/order-management' // Import OrderManagement
+import OrderManagement from './mobile/OrderManagement' // Corrected import
 
 type Tab = {
   id: string
@@ -42,7 +42,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return 'Gestion des Points Forts'
       case 'advertisements':
         return 'Gestion des Publicités'
-      case 'orders': // Add title for orders tab
+      case 'orders':
         return 'Gestion des Commandes'
       default:
         return variant === 'mobile'
@@ -54,7 +54,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
   const renderForm = () => {
     switch (activeTab) {
       case 'users':
-        return <UserList /> // Assuming UserList is more of a management interface than a simple table
+        return <UserList />
       case 'products':
         return <ProductForm />
       case 'headings':
@@ -65,7 +65,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return <HighlightForm />
       case 'advertisements':
         return <AdvertisementForm />
-      case 'orders': // Add case for orders
+      case 'orders':
         return <OrderManagement />
       default:
         return variant === 'mobile' ? <ProductForm /> : <NewsForm />
@@ -73,9 +73,6 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
   }
 
   const renderTable = () => {
-    // If OrderManagement provides its own table, it might not need a separate case here
-    // Or, if there's a read-only list view for orders, it could be added here.
-    // For now, OrderManagement handles its own display.
     switch (activeTab) {
       case 'news':
         return <NewsTable />
@@ -87,14 +84,11 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return <ProductsList />
       case 'headings':
         return <HeadingsList />
-      // No specific table for 'orders' here if OrderManagement handles it.
       default:
         return variant === 'mobile' ? <ProductsList /> : <NewsTable />
     }
   }
 
-  // Hide the "Afficher le formulaire" / "Voir toutes les entrées" button for 'orders' tab
-  // if OrderManagement component handles its own view switching or doesn't need it.
   const shouldShowViewToggleButton = activeTab !== 'users' && activeTab !== 'orders';
 
 
@@ -105,7 +99,6 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         activeTab={activeTab}
         onTabChange={(newTab) => {
           setActiveTab(newTab);
-          // Reset showTable state when changing tabs to default to the form/main component view
           setShowTable(false);
         }}
       />
@@ -121,8 +114,6 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
 
       <div className='grid grid-cols-1 gap-8 md:grid-cols-1'>
         <div className='p-4 border rounded-md'>
-          {/* For 'orders' tab, we always render the form which is the OrderManagement component */}
-          {/* Adjust logic if 'orders' tab should also use the showTable toggle for a different view */}
           {(activeTab === 'orders' || !showTable) ? renderForm() : renderTable()}
         </div>
       </div>

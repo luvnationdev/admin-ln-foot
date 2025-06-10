@@ -1,4 +1,4 @@
-// components/dashboard/mobile/order-management.test.tsx
+// components/dashboard/mobile/OrderManagement.test.tsx
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -102,15 +102,11 @@ describe('OrderManagement Component (Refactored)', () => {
   // Tests for handleUpdateStatus (confirmation, cancellation logic)
   // These tests remain in OrderManagement as handleUpdateStatus is defined here.
   describe('handleUpdateStatus in OrderManagement', () => {
-    let instance: any; // To hold the rendered component instance if needed for handleUpdateStatus
     let handleUpdateStatusFn: (order: OrderCardOrderType, newStatus: string) => void;
 
     beforeEach(() => {
-        // To test handleUpdateStatus, we need to get a reference to it.
-        // One way is to check what's passed to OrderCard mock.
         MockedOrderCard.mockImplementation(props => {
-            // Capture the function when OrderCard is rendered
-            if (props.order.id === mockApiOrdersData[0].id) { // Assuming we test with the first order
+            if (props.order.id === mockApiOrdersData[0].id) {
                  handleUpdateStatusFn = props.handleUpdateStatus;
             }
             return <div data-testid="order-card-mock">Mocked Order Card</div>;
@@ -148,10 +144,10 @@ describe('OrderManagement Component (Refactored)', () => {
         mockPutApiOrdersById.mockReturnValueOnce({ mutate: mockMutate, isPending: false, variables: null });
         (global.confirm as jest.Mock).mockReturnValueOnce(true);
 
-        const pendingOrder = { ...mockApiOrdersData[0], status: 'Pending' }; // Ensure status is Pending for this test
+        const pendingOrder = { ...mockApiOrdersData[0], status: 'Pending' }; // Ensure it's a pending order
         handleUpdateStatusFn(pendingOrder, 'Cancelled');
 
-        expect(mockToast.error).not.toHaveBeenCalled();
+        expect(mockToast.error).not.toHaveBeenCalled(); // Should not show error for valid cancellation
         expect(mockMutate).toHaveBeenCalled();
     });
 
@@ -159,7 +155,7 @@ describe('OrderManagement Component (Refactored)', () => {
         const mockMutate = jest.fn();
         mockPutApiOrdersById.mockReturnValueOnce({ mutate: mockMutate, isPending: false, variables: null });
 
-        const processingOrder = { ...mockApiOrdersData[1], status: 'Processing' }; // Ensure status is not Pending
+        const processingOrder = { ...mockApiOrdersData[1], status: 'Processing' }; // Ensure it's NOT a pending order
         handleUpdateStatusFn(processingOrder, 'Cancelled');
 
         expect(mockToast.error).toHaveBeenCalledWith('Orders can only be cancelled if they are in "Pending" status.');

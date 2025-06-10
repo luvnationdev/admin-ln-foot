@@ -1,7 +1,7 @@
 // components/dashboard/mobile/OrderCard.tsx
 'use client'
 
-import React, { useState, Fragment } from 'react'; // Fragment is not used, can be removed
+import React, { useState } from 'react'; // Removed Fragment
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import OrderItemDetails from './OrderItemDetails';
 
