@@ -1,44 +1,65 @@
 'use client'
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { trpc } from '@/lib/trpc/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { type Highlight } from '@/types/highlight'
+import {
+  useHighlightControllerServicePostApiV1Highlights,
+  useHighlightControllerServicePutApiV1HighlightsById,
+} from '@/lib/api-client/rq-generated/queries'
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
+import type { HighlightDto } from '@/lib/api-client/rq-generated/requests'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface HighlightEditorProps {
-  highlight?: Highlight | null
+  highlight?: HighlightDto | null
 }
 
 export default function HighlightEditor({ highlight }: HighlightEditorProps) {
   const [title, setTitle] = useState(highlight?.title ?? '')
   const [description, setDescription] = useState(highlight?.description ?? '')
 
-  const utils = trpc.useUtils()
+  const queryClient = useQueryClient()
 
-  const createHighlightMutation = trpc.highlights.createHighlight.useMutation({
-    onSuccess: async () => {
-      toast.success('Point fort créé avec succès')
-      setTitle('')
-      setDescription('')
-      await utils.highlights.latest.invalidate()
-    },
-    onError: (error) => {
-      toast.error(`Erreur lors de la création: ${error.message}`)
-    },
-  })
+  const createHighlightMutation =
+    useHighlightControllerServicePostApiV1Highlights({
+      onSuccess: () => {
+        toast.success('Point fort créé avec succès')
+        setTitle('')
+        setDescription('')
+        void queryClient.invalidateQueries({
+          queryKey:
+            CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn(
+              { pageable: { page: 0, size: 20 } }
+            ),
+        })
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors de la création: ${(error as { message: string }).message}`
+        )
+      },
+    })
 
-  const updateHighlightMutation = trpc.highlights.updateHighlight.useMutation({
-    onSuccess: async () => {
-      toast.success('Point fort mis à jour avec succès')
-      await utils.highlights.latest.invalidate()
-    },
-    onError: (error) => {
-      toast.error(`Erreur lors de la mise à jour: ${error.message}`)
-    },
-  })
+  const updateHighlightMutation =
+    useHighlightControllerServicePutApiV1HighlightsById({
+      onSuccess: async () => {
+        toast.success('Point fort mis à jour avec succès')
+        void queryClient.invalidateQueries({
+          queryKey:
+            CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn(
+              { pageable: { page: 0, size: 20 } }
+            ),
+        })
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors de la mise à jour: ${(error as { message: string }).message}`
+        )
+      },
+    })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,18 +70,22 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
     }
 
     if (highlight?.id) {
-       updateHighlightMutation.mutate({
+      updateHighlightMutation.mutate({
         id: highlight.id,
-        title,
-        description,
-      })
-    } else {
-       createHighlightMutation.mutate({
+        requestBody: {
           title,
           description,
-          videoUrl: "",
-          thumbnailUrl: ""
-      });
+        },
+      })
+    } else {
+      createHighlightMutation.mutate({
+        requestBody: {
+          title,
+          description,
+          videoUrl: '',
+          thumbnailUrl: '',
+        },
+      })
     }
   }
 

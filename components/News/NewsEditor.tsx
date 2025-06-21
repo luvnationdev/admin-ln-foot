@@ -1,7 +1,5 @@
 'use client'
 
-import type { NewsArticle } from '@/types/news'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,14 +20,14 @@ import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
 import { useEditorImageUpload } from './hooks/useEditorImageUpload'
 import { useNewsEditorForm } from './hooks/useNewsEditorForm'
 
-// Subcomponents
+import type { NewsArticleDto } from '@/lib/api-client/rq-generated/requests'
 import { EditorImageUploadModal } from './subcomponents/EditorImageUploadModal'
 import { EditorPreview } from './subcomponents/EditorPreview'
 import { EditorToolbar } from './subcomponents/EditorToolbar'
 import { FeaturedImageUploader } from './subcomponents/FeaturedImageUploader'
 
 interface NewsEditorProps {
-  article: NewsArticle | null
+  article: NewsArticleDto | null
 }
 
 export default function NewsEditor({ article }: NewsEditorProps) {

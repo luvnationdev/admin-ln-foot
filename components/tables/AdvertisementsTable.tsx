@@ -1,7 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
-// import type { Advertisement } from '@/types/advertisement' // Replaced by AdvertisementDto
+import AdvertisementEditor from '@/components/Advertisements/AdvertisementEditor'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -10,36 +20,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-// import { trpc } from '@/lib/trpc/react' // Replaced by React Query hooks
 import {
-  useAdvertisementControllerServiceGetApiV1AdvertisementsLatest,
   useAdvertisementControllerServiceDeleteApiV1AdvertisementsById,
+  useAdvertisementControllerServiceGetApiV1AdvertisementsLatest,
 } from '@/lib/api-client/rq-generated/queries'
-import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common'; // For query key functions
 import type { AdvertisementDto, Pageable } from '@/lib/api-client/rq-generated/requests'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
+  Calendar,
+  FileText,
+  Link,
+  Megaphone,
   Pencil,
   Trash2,
-  Megaphone,
-  FileText,
-  Calendar,
-  Link,
 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import AdvertisementEditor from '@/components/Advertisements/AdvertisementEditor'
+import { useState } from 'react'
 
 export default function AdvertisementsTable() {
   // Define a default pageable object, adjust as needed
