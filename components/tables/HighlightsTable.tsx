@@ -22,9 +22,9 @@ import {
 } from '@/components/ui/table'
 import {
   useHighlightControllerServiceDeleteApiV1HighlightsById,
-  useHighlightControllerServiceGetApiV1Highlights
+  useHighlightControllerServiceGetApiV1Highlights,
 } from '@/lib/api-client/rq-generated/queries'
-import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common'; // For query key functions
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
 import type {
   HighlightDto,
   Pageable,
@@ -34,6 +34,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Calendar, FileText, Pencil, Star, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function HighlightsTable() {
   const defaultPageable: Pageable = {
@@ -65,6 +66,11 @@ export default function HighlightsTable() {
               }
             ),
         })
+      },
+      onError: (error) => {
+        toast.error(
+          `Erreur lors de la suppression: ${error instanceof Error ? error.message : "Une erreur inconnue s'est produite"}`
+        )
       },
     })
   if (isLoading) {

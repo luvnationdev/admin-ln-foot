@@ -13,7 +13,6 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import DOMPurify from 'dompurify'
 import {
   Bold,
   Edit2,
@@ -71,7 +70,7 @@ export default function PostEditor() {
       },
       onError: (error) => {
         toast.error(
-          `Failed to create article: ${(error as { message: string }).message}`
+          `Failed to create article: ${error instanceof Error ? error.message : "Une erreur inconnue s'est produite"}`
         )
         console.error('Error creating article:', error)
       },
@@ -334,13 +333,7 @@ export default function PostEditor() {
                     <div className='h-4 bg-gray-100 rounded w-4/6'></div>
                   </div>
                 ) : (
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: editor
-                        ? DOMPurify.sanitize(editor.getHTML())
-                        : '',
-                    }}
-                  ></div>
+                  <EditorContent editor={editor} className='prose-preview' />
                 )}
               </div>
 

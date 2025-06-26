@@ -25,7 +25,8 @@ import {
   useAdvertisementControllerServiceGetApiV1AdvertisementsLatest,
 } from '@/lib/api-client/rq-generated/queries'
 import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common'; // For query key functions
-import type { AdvertisementDto, Pageable } from '@/lib/api-client/rq-generated/requests'
+import type { AdvertisementDto } from '@/lib/api-client/rq-generated/requests'
+import { DEFAULT_HIGHLIGHTS_PAGINATION } from '@/lib/api-football/constants'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -40,11 +41,9 @@ import {
 import { useState } from 'react'
 
 export default function AdvertisementsTable() {
-  // Define a default pageable object, adjust as needed
-  const defaultPageable: Pageable = { page: 0, size: 20, sort: ['createdAt,desc'] }; // Example, adjust sort as needed
 
   const { data: advertisementsPage, isLoading } =
-    useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({ pageable: defaultPageable })
+    useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION })
   const advertisements: AdvertisementDto[] = advertisementsPage?.content ?? []
 
   const [adToDelete, setAdToDelete] = useState<AdvertisementDto | null>(null)
@@ -55,7 +54,7 @@ export default function AdvertisementsTable() {
       setAdToDelete(null)
       // Invalidate the query using the key function
       void queryClient.invalidateQueries({
-        queryKey: CommonQueryKeys.UseAdvertisementControllerServiceGetApiV1AdvertisementsLatestKeyFn({ pageable: defaultPageable }),
+        queryKey: CommonQueryKeys.UseAdvertisementControllerServiceGetApiV1AdvertisementsLatestKeyFn({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION }),
       })
     },
   })

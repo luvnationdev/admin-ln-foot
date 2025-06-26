@@ -1,5 +1,5 @@
 import type React from 'react'
-import type { Editor } from '@tiptap/react'
+import { EditorContent, type Editor } from '@tiptap/react'
 
 interface EditorPreviewProps {
   featuredImage: string | null
@@ -60,9 +60,7 @@ export function EditorPreview({
               <div className='h-4 bg-gray-100 rounded w-4/6'></div>
             </div>
           ) : (
-            <div
-              dangerouslySetInnerHTML={{ __html: editor?.getHTML() ?? '' }}
-            ></div>
+            <EditorContent editor={editor} className='prose-preview' />
           )}
         </div>
 

@@ -9,6 +9,7 @@ import {
 } from '@/lib/api-client/rq-generated/queries'
 import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
 import type { HighlightDto } from '@/lib/api-client/rq-generated/requests'
+import { DEFAULT_HIGHLIGHTS_PAGINATION } from '@/lib/api-football/constants'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -32,13 +33,13 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
         void queryClient.invalidateQueries({
           queryKey:
             CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn(
-              { pageable: { page: 0, size: 20 } }
+              { pageable: DEFAULT_HIGHLIGHTS_PAGINATION }
             ),
         })
       },
       onError: (error) => {
         toast.error(
-          `Erreur lors de la création: ${(error as { message: string }).message}`
+          `Erreur lors de la création: ${error instanceof Error ? error.message : "Une erreur inconnue s'est produite"}`
         )
       },
     })
@@ -50,13 +51,13 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
         void queryClient.invalidateQueries({
           queryKey:
             CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn(
-              { pageable: { page: 0, size: 20 } }
+              { pageable: DEFAULT_HIGHLIGHTS_PAGINATION }
             ),
         })
       },
       onError: (error) => {
         toast.error(
-          `Erreur lors de la mise à jour: ${(error as { message: string }).message}`
+          `Erreur lors de la mise à jour: ${error instanceof Error ? error.message : "Une erreur inconnue s'est produite"}`
         )
       },
     })

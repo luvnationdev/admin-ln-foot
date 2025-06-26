@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "dev": "yarn db:migrate && next dev --turbopack",
     "build": "next build && drizzle-kit migrate",
@@ -18,7 +19,7 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
-    "codegen": "npx @7nohe/openapi-react-query-codegen -i http://localhost:8080/v3/api-docs -o lib/api-client/rq-generated -c fetch",
+    "codegen": "npx @7nohe/openapi-react-query-codegen -i https://api.ln-foot.com/v3/api-docs -o lib/api-client/rq-generated -c fetch",
     "postinstall": "yarn codegen"
   },
   "dependencies": {
