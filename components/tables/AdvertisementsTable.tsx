@@ -1,7 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
-import type { Advertisement } from '@/types/advertisement'
+import AdvertisementEditor from '@/components/Advertisements/AdvertisementEditor'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -10,42 +20,45 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { trpc } from '@/lib/trpc/react'
+import {
+  useAdvertisementControllerServiceDeleteApiV1AdvertisementsById,
+  useAdvertisementControllerServiceGetApiV1AdvertisementsLatest,
+} from '@/lib/api-client/rq-generated/queries'
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common'; // For query key functions
+import type { AdvertisementDto } from '@/lib/api-client/rq-generated/requests'
+import { DEFAULT_HIGHLIGHTS_PAGINATION } from '@/lib/api-football/constants'
+import { useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
+  Calendar,
+  FileText,
+  Link,
+  Megaphone,
   Pencil,
   Trash2,
-  Megaphone,
-  FileText,
-  Calendar,
-  Link,
 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import AdvertisementEditor from '@/components/Advertisements/AdvertisementEditor'
+import { useState } from 'react'
 
 export default function AdvertisementsTable() {
-  const { data: advertisements, isLoading } =
-    trpc.advertisements.latest.useQuery()
-  const [adToDelete, setAdToDelete] = useState<Advertisement | null>(null)
-  const [adToEdit, setAdToEdit] = useState<Advertisement | null>(null)
-  const utils = trpc.useUtils()
-  const deleteAdMutation = trpc.advertisements.deleteAdvertisement.useMutation({
+
+  const { data: advertisementsPage, isLoading } =
+    useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION })
+  const advertisements: AdvertisementDto[] = advertisementsPage?.content ?? []
+
+  const [adToDelete, setAdToDelete] = useState<AdvertisementDto | null>(null)
+  const [adToEdit, setAdToEdit] = useState<AdvertisementDto | null>(null)
+  const queryClient = useQueryClient()
+  const deleteAdMutation = useAdvertisementControllerServiceDeleteApiV1AdvertisementsById({
     onSuccess: () => {
       setAdToDelete(null)
-      void utils.advertisements.latest.invalidate()
+      // Invalidate the query using the key function
+      void queryClient.invalidateQueries({
+        queryKey: CommonQueryKeys.UseAdvertisementControllerServiceGetApiV1AdvertisementsLatestKeyFn({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION }),
+      })
     },
   })
+
   if (isLoading) {
     return (
       <div className='w-full p-12 flex flex-col items-center justify-center space-y-4'>
@@ -124,19 +137,19 @@ export default function AdvertisementsTable() {
                   </TableCell>
                   <TableCell className='py-4 max-w-[300px]'>
                     <p className='text-gray-600 text-sm line-clamp-3 leading-relaxed'>
-                      {ad.description ?? 'Aucune description disponible'}
+                      {ad.content ?? 'Aucune description disponible'} {/* ad.description changed to ad.content */}
                     </p>
                   </TableCell>
                   <TableCell className='py-4'>
-                    {ad.referenceUrl ? (
+                    {ad.url ? ( /* ad.referenceUrl changed to ad.url */
                       <a
-                        href={ad.referenceUrl}
+                        href={ad.url}
                         target='_blank'
                         rel='noopener noreferrer'
                         className='text-blue-600 hover:text-blue-800 text-sm underline flex items-center space-x-1 max-w-[200px] truncate'
                       >
                         <Link className='h-3 w-3 flex-shrink-0' />
-                        <span className='truncate'>{ad.referenceUrl}</span>
+                        <span className='truncate'>{ad.url}</span>
                       </a>
                     ) : (
                       <span className='text-gray-400 text-sm'>Aucun lien</span>

@@ -1,3 +1,5 @@
+import type { Pageable } from "../api-client/rq-generated/requests"
+
 export const INTERESTED_LEAGUES = [
   // Cameroun
   { name: 'Elite One', country: 'Cameroon' },
@@ -46,3 +48,9 @@ export const INTERESTED_LEAGUES = [
   // Tanzania
   { name: 'NBC Premier League', country: 'Tanzania' },
 ]
+
+export const DEFAULT_HIGHLIGHTS_PAGINATION: Pageable = {
+  page: 0,
+  size: 20,
+  sort: ['createdAt,desc'],
+}

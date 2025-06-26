@@ -1,13 +1,16 @@
-import { useState, useRef } from 'react'
-import type React from 'react'
-import type { NewsArticle } from '@/types/news'
+import {
+  useNewsArticleControllerServicePostApiV1NewsArticles,
+  useNewsArticleControllerServicePutApiV1NewsArticlesById,
+} from '@/lib/api-client/rq-generated/queries'
+import type { NewsArticleDto } from '@/lib/api-client/rq-generated/requests'
 import { useUploadFile } from '@/lib/minio/upload'
-import { trpc } from '@/lib/trpc/react'
-import { toast } from 'sonner'
 import type { Editor } from '@tiptap/react'
+import type React from 'react'
+import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 interface UseNewsEditorFormProps {
-  article: NewsArticle | null
+  article: NewsArticleDto | null
   editor: Editor | null
   onFormReset?: () => void // Callback for when form is reset (e.g., to reset view state)
 }
@@ -26,11 +29,13 @@ export function useNewsEditorForm({
   const [featuredImage, setFeaturedImage] = useState(article?.imageUrl ?? '')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { mutateAsync: createNewsArticle, isPending: isSubmitting } =
-    trpc.newsArticles.createNewsArticle.useMutation()
+    useNewsArticleControllerServicePostApiV1NewsArticles()
   const { mutateAsync: updateNewsArticle, isPending: isUpdating } =
-    trpc.newsArticles.updateNewsArticle.useMutation()
-  const { uploadFile: uploadFeaturedImageFileAndGetUrl } =
-    useUploadFile("articles", featuredImageFile)
+    useNewsArticleControllerServicePutApiV1NewsArticlesById()
+  const { uploadFile: uploadFeaturedImageFileAndGetUrl } = useUploadFile(
+    'articles',
+    featuredImageFile
+  )
 
   const handleFeaturedImageFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -95,12 +100,13 @@ export function useNewsEditorForm({
         // If the article already exists, update it
         const data = await updateNewsArticle({
           id: article.id,
-          title,
-          content,
-          isMajorUpdate,
-          summary: excerpt,
-          imageUrl: finalImageUrl,
-          sourceUrl: 'lnfoot-cameroon', // Consider making this dynamic if needed
+          requestBody: {
+            title,
+            content,
+            isMajorUpdate,
+            summary: excerpt,
+            imageUrl: finalImageUrl,
+          },
         })
 
         toast.success('Article mis à jour avec succès!', {
@@ -109,12 +115,13 @@ export function useNewsEditorForm({
         console.log('Successfully updated article: ', data)
       } else
         await createNewsArticle({
-          title,
-          imageUrl: finalImageUrl,
-          summary: excerpt,
-          sourceUrl: 'lnfoot-cameroon', // Consider making this dynamic if needed
-          content,
-          isMajorUpdate,
+          requestBody: {
+            title,
+            content,
+            isMajorUpdate,
+            summary: excerpt,
+            imageUrl: finalImageUrl,
+          },
         })
       toast.success('Article créé avec succès!', {
         id: submissionToastId,

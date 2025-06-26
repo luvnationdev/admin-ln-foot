@@ -8,8 +8,6 @@ export default async function MobileDashboardPage() {
     redirect('/auth/login')
   }
 
-  // Check if user is admin to conditionally show the Orders tab
-  // Note: This is a server component, session.user.roles should be available directly
   const isAdmin = session.user?.roles?.includes('admin')
 
   const tabs = [

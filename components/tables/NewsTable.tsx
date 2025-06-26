@@ -1,6 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import NewsEditor from '@/components/News/NewsEditor'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -9,44 +20,47 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { trpc } from '@/lib/trpc/react'
+import {
+  useNewsArticleControllerServiceDeleteApiV1NewsArticlesById,
+  useNewsArticleControllerServiceGetApiV1NewsArticles,
+} from '@/lib/api-client/rq-generated/queries'
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
+import type { NewsArticleDto } from '@/lib/api-client/rq-generated/requests'
+import { useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
-  Pencil,
-  Trash2,
-  User,
   Calendar,
   FileText,
   Newspaper,
+  Pencil,
+  Trash2,
+  User,
 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { type NewsArticle } from '@/types/news'
-import NewsEditor from '@/components/News/NewsEditor'
+import { useState } from 'react'
 
 export default function NewsTable() {
-  const { data: newsArticles, isLoading } = trpc.newsArticles.latest.useQuery()
-  const [articleToDelete, setArticleToDelete] = useState<NewsArticle | null>(
+  const { data: newsArticles, isLoading } =
+    useNewsArticleControllerServiceGetApiV1NewsArticles()
+  const [articleToDelete, setArticleToDelete] = useState<NewsArticleDto | null>(
     null
   )
-  const [articleToEdit, setArticleToEdit] = useState<NewsArticle | null>(null)
-  const utils = trpc.useUtils()
-  const deleteNewsMutation = trpc.newsArticles.deleteNewsArticle.useMutation({
-    onSuccess: async () => {
-      setArticleToDelete(null)
-      await utils.newsArticles.latest.invalidate()
-    },
-  })
+  const [articleToEdit, setArticleToEdit] = useState<NewsArticleDto | null>(
+    null
+  )
+
+  const queryClient = useQueryClient()
+  const deleteNewsMutation =
+    useNewsArticleControllerServiceDeleteApiV1NewsArticlesById({
+      onSuccess: () => {
+        setArticleToDelete(null)
+        void queryClient.invalidateQueries({
+          queryKey:
+            CommonQueryKeys.UseNewsArticleControllerServiceGetApiV1NewsArticlesKeyFn(),
+        })
+      },
+    })
+
   if (isLoading) {
     return (
       <div className='w-full p-12 flex flex-col items-center justify-center space-y-4'>
@@ -130,7 +144,7 @@ export default function NewsTable() {
                       variant='outline'
                       className='bg-blue-50 text-blue-700 border-blue-200'
                     >
-                      {article.apiSource ?? 'Admin'}
+                      {article.authorName ?? 'Admin'}
                     </Badge>
                   </TableCell>
                   <TableCell className='py-4 max-w-[300px]'>
