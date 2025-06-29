@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserControllerServicePutApiV1UsersByIdRole } from '@/lib/api-client/rq-generated/queries'
 import { trpc } from '@/lib/trpc/react'
 import { useSession } from 'next-auth/react'
 import { useState } from 'react'
@@ -19,6 +20,8 @@ export default function UserList() {
 
   const isPending = isLoading || assigning || removing
 
+  const updateUserRoleMutation = useUserControllerServicePutApiV1UsersByIdRole()
+
   const handleAssignRole = (userId: string) => {
     if (
       !confirm(
@@ -31,6 +34,11 @@ export default function UserList() {
       { userId, roleName: 'admin' },
       {
         onSuccess: () => {
+          updateUserRoleMutation.mutate({
+            id: userId,
+            requestBody: { role: 'ADMIN' },
+          })
+
           toast.success('Rôle admin assigné avec succès')
           refetch().catch((err) => {
             console.error('Erreur lors du rechargement:', err)
@@ -54,6 +62,10 @@ export default function UserList() {
       { userId, roleName: 'admin' },
       {
         onSuccess: () => {
+          updateUserRoleMutation.mutate({
+            id: userId,
+            requestBody: { role: 'USER' },
+          })
           toast.success('Rôle admin retiré avec succès')
           refetch().catch((err) => {
             console.error('Erreur lors du rechargement:', err)

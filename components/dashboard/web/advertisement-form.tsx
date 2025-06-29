@@ -2,14 +2,14 @@
 
 import type React from 'react'
 
-import { useState, useRef } from 'react'
-import { X, Link as LinkIcon } from 'lucide-react'
-import { toast } from 'sonner'
-import { useUploadFile } from '@/lib/minio/upload'
-import { trpc } from '@/lib/trpc/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useAdvertisementControllerServicePostApiV1Advertisements } from '@/lib/api-client/rq-generated/queries'
+import { useUploadFile } from '@/lib/minio/upload'
+import { Link as LinkIcon, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function AdvertisementForm() {
   // États principaux
@@ -26,7 +26,7 @@ export default function AdvertisementForm() {
 
   // TRPC & upload
   const { mutate: createAdvertisement } =
-    trpc.advertisements.createAdvertisement.useMutation()
+    useAdvertisementControllerServicePostApiV1Advertisements()
   const { uploadFile } = useUploadFile('advertisements', uploadFileInput)
 
   // Handlers
@@ -92,10 +92,12 @@ export default function AdvertisementForm() {
       toast.loading('Enregistrement de la publicité...', { id: toastId })
       createAdvertisement(
         {
-          title,
-          description,
-          referenceUrl,
-          imageUrl: finalMediaUrl,
+          requestBody: {
+            title,
+            url: referenceUrl,
+            content: description,
+            imageUrl: finalMediaUrl,
+          },
         },
         {
           onSuccess: () => {
@@ -103,7 +105,9 @@ export default function AdvertisementForm() {
             resetForm()
           },
           onError: (error) => {
-            toast.error(`Erreur : ${error.message}`, { id: toastId })
+            toast.error(`Erreur : ${(error as { message: string }).message}`, {
+              id: toastId,
+            })
           },
         }
       )
