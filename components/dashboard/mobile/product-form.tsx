@@ -175,7 +175,7 @@ export const ProductForm = () => {
 
     try {
       const createdProduct = await createProductMutation.mutateAsync({
-        formData: productPayload,
+        requestBody: productPayload,
       })
 
       if (!createdProduct?.id) {
@@ -395,7 +395,6 @@ export const ProductForm = () => {
             ))}
             <button
               type='button'
-
               onClick={() =>
                 append({
                   colorCode: '#000000',
