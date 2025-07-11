@@ -40,6 +40,14 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
+// Helper to extract YouTube video ID from a URL
+function getYouTubeId(url: string): string | null {
+  // Handles both youtube.com and youtu.be links
+  const regExp = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = regExp.exec(url);
+  return match ? match[1] : null;
+}
+
 export default function AdvertisementsTable() {
 
   const { data: advertisementsPage, isLoading } =
@@ -99,6 +107,12 @@ export default function AdvertisementsTable() {
                 Description
               </TableHead>
               <TableHead className='font-semibold text-gray-700'>
+                <span>Image</span>
+              </TableHead>
+              <TableHead className='font-semibold text-gray-700'>
+                <span>Vidéo</span>
+              </TableHead>
+              <TableHead className='font-semibold text-gray-700'>
                 <div className='flex items-center space-x-2'>
                   <Link className='h-4 w-4' />
                   <span>Lien</span>
@@ -114,7 +128,7 @@ export default function AdvertisementsTable() {
                 Actions
               </TableHead>
             </TableRow>
-          </TableHeader>{' '}
+          </TableHeader>
           <TableBody>
             {advertisements?.length ? (
               advertisements.map((ad) => (
@@ -137,19 +151,58 @@ export default function AdvertisementsTable() {
                   </TableCell>
                   <TableCell className='py-4 max-w-[300px]'>
                     <p className='text-gray-600 text-sm line-clamp-3 leading-relaxed'>
-                      {ad.content ?? 'Aucune description disponible'} {/* ad.description changed to ad.content */}
+                      {ad.content ?? 'Aucune description disponible'}
                     </p>
                   </TableCell>
                   <TableCell className='py-4'>
-                    {ad.url ? ( /* ad.referenceUrl changed to ad.url */
+                    {ad.imageUrl ? (
+                      <img
+                        src={ad.imageUrl}
+                        alt='Aperçu image'
+                        className='h-12 w-20 object-cover rounded shadow border border-gray-200'
+                      />
+                    ) : (
+                      <span className='text-gray-400 text-xs'>Aucune image</span>
+                    )}
+                  </TableCell>
+                  <TableCell className='py-4'>
+                    {ad.videoUrl ? (
+                      (ad.videoUrl.includes('youtube.com') || ad.videoUrl.includes('youtu.be')) ? (
+                        (() => {
+                          const videoId = getYouTubeId(ad.videoUrl);
+                          return videoId ? (
+                            <iframe
+                              src={`https://www.youtube.com/embed/${videoId}`}
+                              title='YouTube video preview'
+                              className='h-12 w-20 rounded shadow border border-gray-200'
+                              allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                              allowFullScreen
+                            />
+                          ) : (
+                            <span className='text-gray-400 text-xs'>Lien YouTube invalide</span>
+                          );
+                        })()
+                      ) : (
+                        <video
+                          src={ad.videoUrl}
+                          controls
+                          className='h-12 w-20 object-cover rounded shadow border border-gray-200'
+                        />
+                      )
+                    ) : (
+                      <span className='text-gray-400 text-xs'>Aucune vidéo</span>
+                    )}
+                  </TableCell>
+                  <TableCell className='py-4'>
+                    {ad.referenceUrl ? (
                       <a
-                        href={ad.url}
+                        href={ad.referenceUrl}
                         target='_blank'
                         rel='noopener noreferrer'
                         className='text-blue-600 hover:text-blue-800 text-sm underline flex items-center space-x-1 max-w-[200px] truncate'
                       >
                         <Link className='h-3 w-3 flex-shrink-0' />
-                        <span className='truncate'>{ad.url}</span>
+                        <span className='truncate'>{ad.referenceUrl}</span>
                       </a>
                     ) : (
                       <span className='text-gray-400 text-sm'>Aucun lien</span>
@@ -240,7 +293,7 @@ export default function AdvertisementsTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className='text-center py-16'>
+                <TableCell colSpan={7} className='text-center py-16'>
                   <div className='flex flex-col items-center space-y-4'>
                     <div className='p-4 bg-gray-100 rounded-full'>
                       <Megaphone className='h-8 w-8 text-gray-400' />

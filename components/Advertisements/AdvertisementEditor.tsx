@@ -20,7 +20,7 @@ export default function AdvertisementEditor({
 }: AdvertisementEditorProps) {
   const [title, setTitle] = useState(advertisement?.title ?? '')
   const [description, setDescription] = useState(advertisement?.content ?? '')
-  const [referenceUrl, setReferenceUrl] = useState(advertisement?.url ?? '')
+  const [referenceUrl, setReferenceUrl] = useState(advertisement?.referenceUrl ?? '')
   const [uploadFileInput, setUploadFile] = useState<File | null>(null)
   const [featuredImage, setFeaturedImage] = useState(
     advertisement?.imageUrl ?? ''

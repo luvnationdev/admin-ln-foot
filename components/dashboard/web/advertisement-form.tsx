@@ -64,7 +64,9 @@ export default function AdvertisementForm() {
     setMediaType('image')
   }
 
+
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("Reference URL", referenceUrl)
     e.preventDefault()
 
     if (!title.trim()) {
@@ -94,9 +96,10 @@ export default function AdvertisementForm() {
         {
           requestBody: {
             title,
-            url: referenceUrl,
+            referenceUrl,
             content: description,
-            imageUrl: finalMediaUrl,
+            imageUrl: mediaType === 'image' ? finalMediaUrl : undefined,
+            videoUrl: mediaType === 'video' ? finalMediaUrl : undefined,
           },
         },
         {
