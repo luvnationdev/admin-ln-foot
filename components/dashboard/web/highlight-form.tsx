@@ -62,6 +62,7 @@ export default function HighlightForm() {
         toast.loading('Upload de la miniature...')
 
         finalThumbnailUrl = await uploadToMinio(uploadFileInput)
+        toast.info('Image uploadée avec succès !')
       } catch (error) {
         toast.error("Erreur lors de l'upload de l'image : " + String(error))
         return
