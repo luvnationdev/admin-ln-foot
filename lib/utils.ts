@@ -79,3 +79,11 @@ export function isValidImageUrl(url: string): boolean {
     return false
   }
 }
+
+export function getYouTubeId(url: string): string | null {
+  // Handles both youtube.com and youtu.be links
+  const regExp =
+    /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  const match = regExp.exec(url)
+  return match ? match[1] : null
+}

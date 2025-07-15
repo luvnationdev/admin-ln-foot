@@ -24,9 +24,10 @@ import {
   useAdvertisementControllerServiceDeleteApiV1AdvertisementsById,
   useAdvertisementControllerServiceGetApiV1AdvertisementsLatest,
 } from '@/lib/api-client/rq-generated/queries'
-import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common'; // For query key functions
+import * as CommonQueryKeys from '@/lib/api-client/rq-generated/queries/common' // For query key functions
 import type { AdvertisementDto } from '@/lib/api-client/rq-generated/requests'
 import { DEFAULT_HIGHLIGHTS_PAGINATION } from '@/lib/api-football/constants'
+import { getYouTubeId } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -40,32 +41,29 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-// Helper to extract YouTube video ID from a URL
-function getYouTubeId(url: string): string | null {
-  // Handles both youtube.com and youtu.be links
-  const regExp = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = regExp.exec(url);
-  return match ? match[1] : null;
-}
-
 export default function AdvertisementsManagement() {
-
   const { data: advertisementsPage, isLoading } =
-    useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION })
+    useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({
+      pageable: DEFAULT_HIGHLIGHTS_PAGINATION,
+    })
   const advertisements: AdvertisementDto[] = advertisementsPage?.content ?? []
 
   const [adToDelete, setAdToDelete] = useState<AdvertisementDto | null>(null)
   const [adToEdit, setAdToEdit] = useState<AdvertisementDto | null>(null)
   const queryClient = useQueryClient()
-  const deleteAdMutation = useAdvertisementControllerServiceDeleteApiV1AdvertisementsById({
-    onSuccess: () => {
-      setAdToDelete(null)
-      // Invalidate the query using the key function
-      void queryClient.invalidateQueries({
-        queryKey: CommonQueryKeys.UseAdvertisementControllerServiceGetApiV1AdvertisementsLatestKeyFn({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION }),
-      })
-    },
-  })
+  const deleteAdMutation =
+    useAdvertisementControllerServiceDeleteApiV1AdvertisementsById({
+      onSuccess: () => {
+        setAdToDelete(null)
+        // Invalidate the query using the key function
+        void queryClient.invalidateQueries({
+          queryKey:
+            CommonQueryKeys.UseAdvertisementControllerServiceGetApiV1AdvertisementsLatestKeyFn(
+              { pageable: DEFAULT_HIGHLIGHTS_PAGINATION }
+            ),
+        })
+      },
+    })
 
   if (isLoading) {
     return (
@@ -162,14 +160,17 @@ export default function AdvertisementsManagement() {
                         className='h-12 w-20 object-cover rounded shadow border border-gray-200'
                       />
                     ) : (
-                      <span className='text-gray-400 text-xs'>Aucune image</span>
+                      <span className='text-gray-400 text-xs'>
+                        Aucune image
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className='py-4'>
                     {ad.videoUrl ? (
-                      (ad.videoUrl.includes('youtube.com') || ad.videoUrl.includes('youtu.be')) ? (
+                      ad.videoUrl.includes('youtube.com') ||
+                      ad.videoUrl.includes('youtu.be') ? (
                         (() => {
-                          const videoId = getYouTubeId(ad.videoUrl);
+                          const videoId = getYouTubeId(ad.videoUrl)
                           return videoId ? (
                             <iframe
                               src={`https://www.youtube.com/embed/${videoId}`}
@@ -179,8 +180,10 @@ export default function AdvertisementsManagement() {
                               allowFullScreen
                             />
                           ) : (
-                            <span className='text-gray-400 text-xs'>Lien YouTube invalide</span>
-                          );
+                            <span className='text-gray-400 text-xs'>
+                              Lien YouTube invalide
+                            </span>
+                          )
                         })()
                       ) : (
                         <video
@@ -190,7 +193,9 @@ export default function AdvertisementsManagement() {
                         />
                       )
                     ) : (
-                      <span className='text-gray-400 text-xs'>Aucune vidéo</span>
+                      <span className='text-gray-400 text-xs'>
+                        Aucune vidéo
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className='py-4'>

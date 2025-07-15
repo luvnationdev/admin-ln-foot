@@ -74,7 +74,7 @@ export default function HighlightForm() {
         title,
         videoUrl,
         description,
-        thumbnailUrl: finalThumbnailUrl || videoUrl,
+        thumbnailUrl: finalThumbnailUrl,
       },
     })
   }
