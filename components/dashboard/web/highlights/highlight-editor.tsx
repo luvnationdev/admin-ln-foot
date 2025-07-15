@@ -20,6 +20,10 @@ interface HighlightEditorProps {
 
 export default function HighlightEditor({ highlight }: HighlightEditorProps) {
   const [title, setTitle] = useState(highlight?.title ?? '')
+  const [videoUrl, setVideoUrl] = useState(highlight?.videoUrl ?? '')
+  const [thumbnailUrl, setThumbnailUrl] = useState(
+    highlight?.thumbnailUrl ?? ''
+  )
   const [description, setDescription] = useState(highlight?.description ?? '')
 
   const queryClient = useQueryClient()
@@ -83,8 +87,8 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
         requestBody: {
           title,
           description,
-          videoUrl: '',
-          thumbnailUrl: '',
+          videoUrl,
+          thumbnailUrl,
         },
       })
     }
@@ -97,6 +101,20 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
         placeholder='Titre'
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <Input
+        type='text'
+        placeholder='Video Url'
+        value={videoUrl}
+        onChange={(e) => setVideoUrl(e.target.value)}
+      />
+
+      <Input
+        type='text'
+        placeholder='Thumbnail Url'
+        value={thumbnailUrl}
+        onChange={(e) => setThumbnailUrl(e.target.value)}
       />
 
       <Textarea
