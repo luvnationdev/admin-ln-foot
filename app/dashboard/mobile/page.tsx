@@ -11,15 +11,13 @@ export default async function MobileDashboardPage() {
   const tabs = [
     { id: 'products', label: 'PRODUITS' },
     { id: 'headings', label: 'ENTETES' },
-    { id: 'orders', label: 'COMMANDES' }
-  ];
+    { id: 'orders', label: 'COMMANDES' },
+    { id: 'categories', label: 'CATEGORIES' },
+  ]
 
   return (
     <main className='min-h-screen bg-white'>
-      <DashboardTabs
-        variant='mobile'
-        tabs={tabs} // Pass the updated tabs array
-      />
+      <DashboardTabs variant='mobile' tabs={tabs} />
     </main>
   )
 }
