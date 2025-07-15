@@ -1,6 +1,6 @@
 'use client'
 
-import NewsEditor from '@/components/News/NewsEditor'
+import NewsEditor from '@/components/dashboard/web/news/news-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,7 +39,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-export default function NewsTable() {
+export default function NewsManagement() {
   const { data: newsArticles, isLoading } =
     useNewsArticleControllerServiceGetApiV1NewsArticles()
   const [articleToDelete, setArticleToDelete] = useState<NewsArticleDto | null>(

@@ -1,4 +1,4 @@
-import { type ProductFormValues } from '@/components/dashboard/mobile/product-form'
+import { type ProductFormValues } from '@/components/dashboard/mobile/products/product-form'
 import {
   Carousel,
   CarouselContent,
@@ -11,7 +11,7 @@ interface PreviewProps {
   data: ProductFormValues
 }
 
-export default function Preview({ data }: PreviewProps) {
+export default function ProductPreview({ data }: PreviewProps) {
   const [selectedSize, setSelectedSize] = useState<string>()
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>()
   const selectedVariant = data.variants?.[selectedVariantIndex ?? 0]

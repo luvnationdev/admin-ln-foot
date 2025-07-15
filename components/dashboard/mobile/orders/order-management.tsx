@@ -11,7 +11,7 @@ import {
 } from '@/lib/api-client/rq-generated/queries'
 
 import type { OrderDto } from '@/lib/api-client/rq-generated/requests'
-import OrderCard from './OrderCard'
+import OrderCard from './order-card'
 
 const orderStatusesList = [
   'Pending',

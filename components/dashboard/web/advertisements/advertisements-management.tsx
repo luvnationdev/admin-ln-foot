@@ -1,6 +1,6 @@
 'use client'
 
-import AdvertisementEditor from '@/components/Advertisements/AdvertisementEditor'
+import AdvertisementEditor from '@/components/dashboard/web/advertisements/advertisement-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,7 +48,7 @@ function getYouTubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 
-export default function AdvertisementsTable() {
+export default function AdvertisementsManagement() {
 
   const { data: advertisementsPage, isLoading } =
     useAdvertisementControllerServiceGetApiV1AdvertisementsLatest({ pageable: DEFAULT_HIGHLIGHTS_PAGINATION })
