@@ -1,20 +1,21 @@
 'use client'
 
 import ContentTabs from '@/components/content-tabs'
-import AdvertisementForm from '@/components/dashboard/web/advertisement-form'
-import HighlightForm from '@/components/dashboard/web/highlight-form'
-import NewsForm from '@/components/dashboard/web/news-form'
+import AdvertisementForm from '@/components/dashboard/web/advertisements/advertisement-form'
+import HighlightForm from '@/components/dashboard/web/highlights/highlight-form'
+import NewsForm from '@/components/dashboard/web/news/news-form'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { HeadingsList } from '../lists/headings-list'
-import { ProductsList } from '../lists/products-list'
-import UserList from '../lists/users-list'
-import AdvertisementsTable from '../tables/AdvertisementsTable'
-import HighlightsTable from '../tables/HighlightsTable'
-import NewsTable from '../tables/NewsTable'
-import HeadingsForm from './mobile/heading-form'
-import { ProductForm } from './mobile/product-form'
-import OrderManagement from './mobile/OrderManagement' // Corrected import
+import CategoriesManagement from './mobile/categories/category-management'
+import HeadingsForm from './mobile/headings/heading-form'
+import { HeadingsManagement } from './mobile/headings/headings-management'
+import OrderManagement from './mobile/orders/order-management'; // Corrected import
+import { ProductForm } from './mobile/products/product-form'
+import { ProductsManagement } from './mobile/products/products-management'
+import UsersManagement from './users/users-management'
+import AdvertisementsManagement from './web/advertisements/advertisements-management'
+import HighlightsManagement from './web/highlights/highlights-management'
+import NewsManagement from './web/news/news-management'
 
 type Tab = {
   id: string
@@ -44,6 +45,8 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return 'Gestion des Publicités'
       case 'orders':
         return 'Gestion des Commandes'
+      case 'categories':
+        return 'Gestion des Catégories'
       default:
         return variant === 'mobile'
           ? 'Formulaire de Produits'
@@ -54,7 +57,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
   const renderForm = () => {
     switch (activeTab) {
       case 'users':
-        return <UserList />
+        return <UsersManagement />
       case 'products':
         return <ProductForm />
       case 'headings':
@@ -67,6 +70,8 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         return <AdvertisementForm />
       case 'orders':
         return <OrderManagement />
+      case 'categories':
+        return <CategoriesManagement />
       default:
         return variant === 'mobile' ? <ProductForm /> : <NewsForm />
     }
@@ -75,22 +80,26 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
   const renderTable = () => {
     switch (activeTab) {
       case 'news':
-        return <NewsTable />
+        return <NewsManagement />
       case 'highlights':
-        return <HighlightsTable />
+        return <HighlightsManagement />
       case 'advertisements':
-        return <AdvertisementsTable />
+        return <AdvertisementsManagement />
       case 'products':
-        return <ProductsList />
+        return <ProductsManagement />
       case 'headings':
-        return <HeadingsList />
+        return <HeadingsManagement />
       default:
-        return variant === 'mobile' ? <ProductsList /> : <NewsTable />
+        return variant === 'mobile' ? (
+          <ProductsManagement />
+        ) : (
+          <NewsManagement />
+        )
     }
   }
 
-  const shouldShowViewToggleButton = activeTab !== 'users' && activeTab !== 'orders';
-
+  const shouldShowViewToggleButton =
+    activeTab !== 'users' && activeTab !== 'orders'
 
   return (
     <div className='max-w-6xl px-4 mx-auto my-6'>
@@ -98,8 +107,8 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={(newTab) => {
-          setActiveTab(newTab);
-          setShowTable(false);
+          setActiveTab(newTab)
+          setShowTable(false)
         }}
       />
 
@@ -114,7 +123,7 @@ export default function DashboardTabs({ tabs, variant }: DashboardTabsProps) {
 
       <div className='grid grid-cols-1 gap-8 md:grid-cols-1'>
         <div className='p-4 border rounded-md'>
-          {(activeTab === 'orders' || !showTable) ? renderForm() : renderTable()}
+          {activeTab === 'orders' || !showTable ? renderForm() : renderTable()}
         </div>
       </div>
     </div>

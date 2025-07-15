@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { useHeadingControllerServicePostApiHeadings } from '@/lib/api-client/rq-generated/queries'
 import { useQueryClient } from '@tanstack/react-query'
 
-export default function HeadingsPage() {
+export default function HeadingsForm() {
   const queryClient = useQueryClient()
   const [title, setTitle] = useState('')
   const [imageUrl, setImageUrl] = useState('')

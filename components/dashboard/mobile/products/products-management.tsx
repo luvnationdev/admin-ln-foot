@@ -16,7 +16,7 @@ import { toast } from 'sonner'
 import type {
   ProductFormValues,
   ProductVariantFormValues,
-} from '../dashboard/mobile/product-form'; // Assuming ProductVariantFormValues might be useful
+} from './product-form'; // Assuming ProductVariantFormValues might be useful
 
 // Skeleton Loader
 function ProductSkeleton() {
@@ -31,7 +31,7 @@ function ProductSkeleton() {
   )
 }
 
-export function ProductsList() {
+export function ProductsManagement() {
   const [selectedProductId, setSelectedProductId] = useState<string>()
 
   const {

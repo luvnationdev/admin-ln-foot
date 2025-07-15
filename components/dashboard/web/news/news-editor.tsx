@@ -14,17 +14,17 @@ import { useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useCurrentUser } from '@/lib/hooks/useCurrentUser'
+import { useCurrentUser } from '@/components/dashboard/users/hooks/current-user.hook'
 
 // Custom Hooks
-import { useEditorImageUpload } from './hooks/useEditorImageUpload'
-import { useNewsEditorForm } from './hooks/useNewsEditorForm'
+import { useEditorImageUpload } from './hooks/editor-image-upload.hook'
+import { useNewsEditorForm } from './hooks/news-editor-form.hook'
 
 import type { NewsArticleDto } from '@/lib/api-client/rq-generated/requests'
-import { EditorImageUploadModal } from './subcomponents/EditorImageUploadModal'
-import { EditorPreview } from './subcomponents/EditorPreview'
-import { EditorToolbar } from './subcomponents/EditorToolbar'
-import { FeaturedImageUploader } from './subcomponents/FeaturedImageUploader'
+import { EditorImageUploadModal } from './subcomponents/editorImage-upload-modal'
+import { EditorPreview } from './subcomponents/editor-preview'
+import { EditorToolbar } from './subcomponents/editor-toolbar'
+import { FeaturedImageUploader } from './subcomponents/featured-image-uploader'
 
 interface NewsEditorProps {
   article: NewsArticleDto | null

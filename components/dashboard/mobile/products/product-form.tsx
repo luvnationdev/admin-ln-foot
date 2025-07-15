@@ -1,6 +1,6 @@
 'use client'
 
-import Preview from '@/components/previews/product/preview'
+import ProductPreview from '@/components/dashboard/mobile/products/product-preview'
 import {
   useProductControllerServicePostApiProducts,
   useProductVariantControllerServicePostApiProductVariantsBulk, // Assuming bulk variant creation
@@ -421,7 +421,7 @@ export const ProductForm = () => {
       </div>
 
       <div className='sticky top-4 max-h-screen overflow-auto'>
-        <Preview data={formData} />
+        <ProductPreview data={formData} />
       </div>
     </form>
   )

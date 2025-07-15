@@ -1,6 +1,6 @@
 "use client";
 
-import NewsEditor from "@/components/News/NewsEditor";
+import NewsEditor from "@/components/dashboard/web/news/news-editor";
 
 export default function NewsForm() {
   return (

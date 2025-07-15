@@ -16,7 +16,7 @@ function HeadingSkeleton() {
   )
 }
 
-export function HeadingsList() {
+export function HeadingsManagement() {
   const {
     data: headings,
     error,

@@ -8,23 +8,16 @@ export default async function MobileDashboardPage() {
     redirect('/auth/login')
   }
 
-  const isAdmin = session.user?.roles?.includes('admin')
-
   const tabs = [
     { id: 'products', label: 'PRODUITS' },
     { id: 'headings', label: 'ENTETES' },
-  ];
-
-  if (isAdmin) {
-    tabs.push({ id: 'orders', label: 'COMMANDES' });
-  }
+    { id: 'orders', label: 'COMMANDES' },
+    { id: 'categories', label: 'CATEGORIES' },
+  ]
 
   return (
     <main className='min-h-screen bg-white'>
-      <DashboardTabs
-        variant='mobile'
-        tabs={tabs} // Pass the updated tabs array
-      />
+      <DashboardTabs variant='mobile' tabs={tabs} />
     </main>
   )
 }

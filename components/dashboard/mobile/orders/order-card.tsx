@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
-import OrderItemDetails from './OrderItemDetails'
+import OrderItemDetails from './order-item-details'
 import type { OrderDto } from '@/lib/api-client/rq-generated/requests'
 
 interface OrderCardProps {

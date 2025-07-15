@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function UserList() {
+export default function UsersManagement() {
   const { data: session } = useSession()
   const [search, setSearch] = useState('')
   const { data: users = [], refetch, isLoading } = trpc.users.list.useQuery()

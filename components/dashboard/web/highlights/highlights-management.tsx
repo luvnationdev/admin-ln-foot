@@ -1,6 +1,6 @@
 'use client'
 
-import HighlightEditor from '@/components/Highlights/HighlightEditor'
+import HighlightEditor from '@/components/dashboard/web/highlights/highlight-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,7 +36,7 @@ import { Calendar, FileText, Pencil, Star, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function HighlightsTable() {
+export default function HighlightsManagement() {
   const defaultPageable: Pageable = {
     page: 0,
     size: 20,
