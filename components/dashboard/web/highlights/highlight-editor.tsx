@@ -16,9 +16,13 @@ import { toast } from 'sonner'
 
 interface HighlightEditorProps {
   highlight?: HighlightDto | null
+  onMutationSuccess: () => void
 }
 
-export default function HighlightEditor({ highlight }: HighlightEditorProps) {
+export default function HighlightEditor({
+  highlight,
+  onMutationSuccess,
+}: HighlightEditorProps) {
   const [title, setTitle] = useState(highlight?.title ?? '')
   const [videoUrl, setVideoUrl] = useState(highlight?.videoUrl ?? '')
   const [thumbnailUrl, setThumbnailUrl] = useState(
@@ -40,6 +44,7 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
               { pageable: DEFAULT_HIGHLIGHTS_PAGINATION }
             ),
         })
+        onMutationSuccess()
       },
       onError: (error) => {
         toast.error(
@@ -58,6 +63,7 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
               { pageable: DEFAULT_HIGHLIGHTS_PAGINATION }
             ),
         })
+        onMutationSuccess()
       },
       onError: (error) => {
         toast.error(
@@ -80,6 +86,8 @@ export default function HighlightEditor({ highlight }: HighlightEditorProps) {
         requestBody: {
           title,
           description,
+          videoUrl,
+          thumbnailUrl,
         },
       })
     } else {
