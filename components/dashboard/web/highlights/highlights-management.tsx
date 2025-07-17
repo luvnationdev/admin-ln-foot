@@ -1,6 +1,8 @@
 'use client'
 
 import HighlightTableRow from '@/components/dashboard/web/highlights/highlight-table-row'
+import DeleteHighlightDialog from '@/components/dashboard/web/highlights/subcomponents/delete-highlight-dialog'
+import EditHighlightDialog from '@/components/dashboard/web/highlights/subcomponents/edit-highlight-dialog'
 import {
   Table,
   TableBody,
@@ -124,9 +126,6 @@ export default function HighlightsManagement() {
                   highlight={highlight}
                   setHighlightToEdit={setHighlightToEdit}
                   setHighlightToDelete={setHighlightToDelete}
-                  deleteHighlightMutation={deleteHighlightMutation}
-                  highlightToEdit={highlightToEdit}
-                  highlightToDelete={highlightToDelete}
                 />
               ))
             ) : (
@@ -151,6 +150,15 @@ export default function HighlightsManagement() {
           </TableBody>
         </Table>
       </div>
+      <DeleteHighlightDialog
+        highlightToDelete={highlightToDelete}
+        setHighlightToDelete={setHighlightToDelete}
+        deleteHighlightMutation={deleteHighlightMutation}
+      />
+      <EditHighlightDialog
+        highlightToEdit={highlightToEdit}
+        setHighlightToEdit={setHighlightToEdit}
+      />
     </div>
   )
 }
