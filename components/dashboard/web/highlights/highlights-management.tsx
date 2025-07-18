@@ -25,13 +25,13 @@ import { Calendar, FileText, Star } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function HighlightsManagement() {
-  const defaultPageable: Pageable = {
-    page: 0,
-    size: 20,
-    sort: ['createdAt,desc'],
-  }
+const defaultPageable: Pageable = {
+  page: 0,
+  size: 20,
+  sort: ['createdAt,desc'],
+}
 
+export default function HighlightsManagement() {
   const { data: highlights, isLoading } =
     useHighlightControllerServiceGetApiV1Highlights({
       pageable: defaultPageable,
@@ -49,11 +49,9 @@ export default function HighlightsManagement() {
         // Invalidate the query using the key function
         void queryClient.invalidateQueries({
           queryKey:
-            CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn(
-              {
-                pageable: defaultPageable,
-              }
-            ),
+            CommonQueryKeys.UseHighlightControllerServiceGetApiV1HighlightsKeyFn({
+              pageable: defaultPageable,
+            }),
         })
       },
       onError: (error) => {
